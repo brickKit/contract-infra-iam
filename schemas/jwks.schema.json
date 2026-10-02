@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/jwks.schema.json",
+  "title": "GET {IAM_URL}/.well-known/jwks.json",
+  "description": "The platform's signing keys (RFC 7517). One to three keys: the current one, the previous one during a rotation, and optionally the next one published ahead of use (TOKENS.md, 'Signing keys'). Public members only: a key with a private member (d, p, q, dp, dq, qi, k) does not conform.",
+  "type": "object",
+  "required": ["keys"],
+  "properties": {
+    "keys": {
+      "type": "array", "minItems": 1, "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["kty", "kid", "alg", "use"],
+        "properties": {
+          "kid": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "use": { "const": "sig" },
+          "d": false, "p": false, "q": false, "dp": false, "dq": false, "qi": false, "k": false
+        },
+        "oneOf": [
+          { "properties": { "kty": { "const": "RSA" }, "alg": { "const": "RS256" }, "n": { "type": "string", "minLength": 342 }, "e": { "type": "string" } }, "required": ["n", "e"] },
+          { "properties": { "kty": { "const": "EC" }, "alg": { "const": "ES256" }, "crv": { "const": "P-256" }, "x": { "type": "string" }, "y": { "type": "string" } }, "required": ["crv", "x", "y"] },
+          { "properties": { "kty": { "const": "OKP" }, "alg": { "const": "EdDSA" }, "crv": { "const": "Ed25519" }, "x": { "type": "string" } }, "required": ["crv", "x"] }
+        ]
+      }
+    }
+  }
+}

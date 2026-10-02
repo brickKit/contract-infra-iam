@@ -1,0 +1,152 @@
+# Capability enum of the IAM family contract, iam/1.0.
+#
+# The single source of the capability names. Members declare
+# `provides_capabilities` in assembly.yaml, and advertise the same set at run
+# time in GET /api/tenant/features (`capabilities`) and in the server metadata
+# (`be_capabilities`). Components and the frontend use these names only.
+#
+# Rules (same as contract-infra-authz):
+# - Names are append-only. A capability is never renamed, removed or given a
+#   new meaning; one that is no longer offered is marked `retired`.
+# - A new capability is a contract minor (iam/1.<n>); it is optional by
+#   definition, because a member that predates it must still conform.
+# - Consumers ignore capability names they do not know.
+# - `core` is not optional: every member advertises `core`.
+# - `reserved: true` means the shape is defined in this contract but no member
+#   builds it yet (A4 / A5); a member MUST NOT advertise a reserved capability.
+#
+# Fields: name, group (core | optional), since, summary, provider (what a
+# member that declares it must do), absent.backend / absent.frontend (the
+# explicit degradation when a member does not declare it), conformance (the
+# group of tools/be-acceptance/conformance/iam/ that tests it).
+
+contract: iam/1.0
+
+capabilities:
+  - name: core
+    group: core
+    since: "1.0"
+    summary: Login through any OIDC IdP and the platform token every component verifies.
+    provider: >-
+      GET /api/iam/login-config, GET /api/tenant/features, the server metadata
+      and the JWKS (current and previous key); POST /api/iam/token with the
+      login profile of RFC 8693 (IdP ID token in, platform access and refresh
+      token out); refresh rotation with reuse detection; logout; platform-owned
+      sub with identity_links (exact match by default); roles and dept_path
+      from the authorization provider's ResolveClaims at login and refresh,
+      fail-closed; infra.iam.user.created|updated|disabled|deleted.v1;
+      BatchGetUsers and ListUsers; the iam-export/1 export and import.
+    absent:
+      backend: not possible; a member without core does not conform
+      frontend: not possible
+    conformance: core
+
+  - name: password_login
+    group: optional
+    since: "1.0"
+    summary: The IdP's login page accepts a username and password.
+    provider: The IdP signs a user in with a password on its own login page.
+    absent:
+      backend: nothing
+      frontend: the login page shows no password hint; it still redirects to the IdP
+    conformance: login_methods
+
+  - name: social_cn
+    group: optional
+    since: "1.0"
+    summary: DingTalk, WeCom and Feishu sign-in at the IdP.
+    provider: >-
+      The IdP offers at least one of DingTalk, WeCom, Feishu; the member fills
+      im_accounts from the linked account where the IdP reports it.
+    absent:
+      backend: im_accounts carries only what the IdP's profile has
+      frontend: no domestic social buttons
+    conformance: login_methods
+
+  - name: ldap
+    group: optional
+    since: "1.0"
+    summary: The IdP federates an LDAP or Active Directory server.
+    provider: Users of the directory sign in at the IdP; their accounts link like any other.
+    absent:
+      backend: nothing
+      frontend: nothing
+    conformance: login_methods
+
+  - name: saml
+    group: optional
+    since: "1.0"
+    summary: The IdP federates SAML 2.0 identity providers.
+    provider: Users of a SAML IdP sign in at the IdP; their accounts link like any other.
+    absent:
+      backend: nothing
+      frontend: nothing
+    conformance: login_methods
+
+  - name: mfa
+    group: optional
+    since: "1.0"
+    summary: The IdP enforces a second factor by policy.
+    provider: The IdP can require a second factor; the member reports amr when the IdP gives it (audit only).
+    absent:
+      backend: nothing
+      frontend: account settings hide the second-factor entry
+    conformance: login_methods
+
+  - name: scim_inbound
+    group: optional
+    since: "1.0"
+    summary: A customer's IdP pushes users (and groups) by SCIM 2.0.
+    provider: >-
+      /scim/v2/Users (and /scim/v2/Groups with directory_departments),
+      ServiceProviderConfig, Schemas, ResourceTypes (RFC 7643 / 7644), with a
+      bearer secret; a pushed user becomes a platform user linked by
+      externalId (method scim); active=false disables.
+    absent:
+      backend: /scim/v2/* answers 501 CAPABILITY_UNAVAILABLE with metadata.capability = scim_inbound
+      frontend: nothing
+    conformance: scim
+
+  - name: directory_departments
+    group: optional
+    since: "1.0"
+    summary: The IdP directory's departments and memberships are published.
+    provider: >-
+      Platform department ids (UUIDv7) linked to the directory's groups;
+      infra.iam.department.created|updated|deleted.v1 and
+      infra.iam.membership.changed.v1; ListDepartments, ListMemberships;
+      department_link, department and membership records in the export.
+    absent:
+      backend: ListDepartments and ListMemberships answer UNIMPLEMENTED with CAPABILITY_UNAVAILABLE; no department events
+      frontend: departments are managed only in the authorization provider's admin pages
+    conformance: directory
+
+  - name: token_exchange_delegation
+    group: optional
+    since: "1.0"
+    reserved: true
+    summary: Delegation profile of the token exchange (act, ceil, dg); impersonation, read-only (A5).
+    provider: >-
+      Reserved. POST /api/iam/token with subject_token_type access_token and
+      requested_subject (impersonation), or with actor_token (agents, A4,
+      never built in iam/1.0); a CreateDelegation at the authorization
+      provider first; act, ceil and dg in the token; no refresh token;
+      infra.iam.impersonation.started.v1.
+    absent:
+      backend: a delegation request answers 401 UNSUPPORTED_DELEGATION (domain be)
+      frontend: no "view as" entry
+    conformance: delegation
+
+  - name: service_accounts
+    group: optional
+    since: "1.0"
+    reserved: true
+    summary: Tokens for service accounts, sub svc:<id>, by client credentials.
+    provider: >-
+      Reserved. POST /api/iam/token with grant_type client_credentials and a
+      private_key_jwt client assertion (RFC 7523); sub svc:<id>, azp svc,
+      roles from ResolveClaims, no refresh token.
+    absent:
+      backend: grant_type client_credentials answers 400 UNSUPPORTED_GRANT_TYPE
+      frontend: nothing
+    conformance: service_accounts

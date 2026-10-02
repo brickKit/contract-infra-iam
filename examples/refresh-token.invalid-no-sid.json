@@ -1,0 +1,19 @@
+{
+  "header": {
+    "alg": "RS256",
+    "kid": "plat-rs-2",
+    "typ": "JWT"
+  },
+  "claims": {
+    "iss": "urn:be:t-test:iam",
+    "aud": [
+      "urn:be:t-test:iam"
+    ],
+    "sub": "01926f3e-4c6b-7a10-9c2e-3b7d5e8f1a20",
+    "typ": "refresh",
+    "iat": 1789999970,
+    "exp": 1790604770,
+    "jti": "01926f3e-4c6b-7e00-9222-3c4d5e6f7a81",
+    "azp": "pc"
+  }
+}

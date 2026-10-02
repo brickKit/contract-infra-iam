@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/access-token.schema.json",
+  "title": "Platform access token: JWT header and claims an IAM member issues",
+  "description": "Issuer side of the access token, iam/1.0 (TOKENS.md). Stricter than what a verifier requires (be-protocol P5, schemas/access-token.schema.json there): a verifier accepts aud as a string or an array and ignores unknown claims; an IAM member emits exactly this. Cross-field rules JSON Schema cannot state are in TOKENS.md: exp - iat <= 3600 (default 600), nbf == iat, aud[0] == TENANT_ID, iss == IAM_ISSUER, ceil and dg present together and only with act.",
+  "type": "object",
+  "required": ["header", "claims"],
+  "additionalProperties": false,
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["alg", "kid", "typ"],
+      "additionalProperties": false,
+      "properties": {
+        "alg": { "enum": ["RS256", "ES256", "EdDSA"] },
+        "kid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "typ": { "const": "JWT" }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "required": ["iss", "aud", "sub", "typ", "iat", "nbf", "exp", "jti", "tenant_id", "azp"],
+      "additionalProperties": false,
+      "properties": {
+        "iss": { "$ref": "#/$defs/issuer" },
+        "aud": {
+          "description": "An array whose first element is TENANT_ID. Further audiences are reserved (a future external API audience); none is emitted in iam/1.0.",
+          "type": "array", "minItems": 1, "maxItems": 1,
+          "items": { "$ref": "#/$defs/tenant" }
+        },
+        "sub": { "$ref": "#/$defs/subject" },
+        "typ": { "const": "access" },
+        "iat": { "$ref": "#/$defs/numericdate" },
+        "nbf": { "$ref": "#/$defs/numericdate" },
+        "exp": { "$ref": "#/$defs/numericdate" },
+        "jti": { "$ref": "#/$defs/uuidv7" },
+        "tenant_id": { "$ref": "#/$defs/tenant" },
+        "roles": {
+          "description": "Role codes from the authorization provider's ResolveClaims at login and refresh (contract-infra-authz). Omitted when the user has no role; never permission keys (decision 0203).",
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+        },
+        "dept_path": {
+          "description": "The user's department path from ResolveClaims, /<id>/<id>/.../. Omitted when the user has no department; never the empty string and never \"/\" (be-protocol P6.4).",
+          "type": "string", "pattern": "^/([^/]+/)+$", "maxLength": 512
+        },
+        "act": { "$ref": "#/$defs/actor" },
+        "ceil": {
+          "description": "Ceiling profile codes of an act_as delegation (contract-infra-authz profiles). Only with act and dg.",
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+        },
+        "dg": {
+          "description": "The delegation grant id from the authorization provider's CreateDelegation. Only with act and ceil.",
+          "$ref": "#/$defs/uuidv7"
+        },
+        "azp": {
+          "description": "The platform client the token was issued to (pc, mobile, ...), mapped by the member from the IdP client id; for a service account, svc.",
+          "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$"
+        },
+        "locale": {
+          "description": "BCP 47. Omitted when the user has none; the component then uses the deployment default.",
+          "type": "string", "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "issuer": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "tenant": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,62}$" },
+    "numericdate": { "type": "integer", "minimum": 0 },
+    "uuidv7": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+    "subject": {
+      "description": "A platform user id (UUIDv7), or svc:<id> for a service account (reserved).",
+      "oneOf": [
+        { "$ref": "#/$defs/uuidv7" },
+        { "type": "string", "pattern": "^svc:[a-z0-9][a-z0-9._-]{0,62}$" }
+      ]
+    },
+    "actor": {
+      "description": "The acting party (RFC 8693 section 4.1), nestable: act.act is the party that acted before. kind agent is reserved (A4): no member issues it in iam/1.0.",
+      "type": "object",
+      "required": ["sub", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "sub": { "$ref": "#/$defs/subject" },
+        "kind": { "enum": ["user", "agent", "svc"] },
+        "act": { "$ref": "#/$defs/actor" }
+      }
+    }
+  }
+}

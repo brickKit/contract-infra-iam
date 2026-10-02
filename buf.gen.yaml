@@ -1,0 +1,12 @@
+# Generation of the Go package published by this module (README.md,
+# "Generated code"). Run `make gen`; the output under gen/go/ is committed
+# with the tag that changes the proto. Plugin versions are the same as in
+# contract-infra-authz, so one shell links one protobuf runtime.
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.6
+    out: gen/go
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go:v1.5.1
+    out: gen/go
+    opt: paths=source_relative

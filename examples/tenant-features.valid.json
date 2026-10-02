@@ -1,0 +1,2 @@
+{ "contract": "iam/1.0", "tenant_id": "t-test", "display_name": "BrickEnterprise demo",
+  "capabilities": ["core", "password_login", "social_cn"], "default_locale": "zh-CN", "locales": ["zh-CN", "en"] }

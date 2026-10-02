@@ -1,0 +1,395 @@
+openapi: 3.1.0
+info:
+  title: IAM family contract, member REST surface
+  version: "1.0"
+  description: |
+    The REST surface every member of the IAM slot family serves, iam/1.0.
+    Normative prose: LOGIN.md (login, token exchange, refresh, logout),
+    TOKENS.md (claims, keys, issuer), DIRECTORY.md (export, import, SCIM).
+
+    Paths are fixed and the same for every member; they do not take the
+    component prefix `/{domain}/{name}` because the frontend must not know
+    which member is installed. `x-edge: true` paths are edge routes
+    (assembly.yaml `edge_routes`); `x-edge: false` paths are reachable only on
+    the project network. `x-guard` is the route guard (be-protocol P6.2):
+    `public`, `authenticated`, or a permission key. `x-capability` marks a
+    path that exists only when the member declares that capability; without
+    it the path answers 501 with reason CAPABILITY_UNAVAILABLE (domain be).
+
+    Member-specific paths (webhook bridges, admin consoles) are listed in
+    openapi/extensions/, never routed through the edge, and never called by
+    components or the frontend.
+
+    Every 4xx/5xx body is problem+json (be-protocol P4). On the three token
+    paths `metadata.oauth_error` carries the RFC 6749 section 5.2 error code
+    for OAuth-aware clients; there is no top-level `error` member.
+  license: { name: Apache-2.0 }
+
+paths:
+  /api/iam/login-config:
+    get:
+      operationId: getLoginConfig
+      summary: OIDC client parameters for the frontend
+      x-edge: true
+      x-guard: public
+      parameters:
+        - name: client
+          in: query
+          description: "The platform client (azp) asking, `pc` by default."
+          schema: { type: string, pattern: "^[a-z][a-z0-9-]{0,31}$", default: pc }
+      responses:
+        "200":
+          description: "OK. `Cache-Control: public, max-age=300`."
+          content:
+            application/json:
+              schema: { $ref: "../schemas/login-config.schema.json" }
+        "400": { $ref: "#/components/responses/Problem" }
+
+  /api/tenant/features:
+    get:
+      operationId: getTenantFeatures
+      summary: What the login page needs before sign-in
+      x-edge: true
+      x-guard: public
+      responses:
+        "200":
+          description: "OK. `Cache-Control: public, max-age=60`."
+          content:
+            application/json:
+              schema: { $ref: "../schemas/tenant-features.schema.json" }
+
+  /api/iam/token:
+    post:
+      operationId: exchangeToken
+      summary: Token exchange (RFC 8693), login profile; delegation and client-credentials profiles reserved
+      x-edge: true
+      x-guard: public
+      description: |
+        Login profile (core): an IdP ID token in, a platform access token and
+        refresh token out (LOGIN.md, "Token exchange"). Reserved profiles:
+        delegation (`subject_token_type` access_token with `requested_subject`
+        or `actor_token`, capability token_exchange_delegation) and
+        `grant_type=client_credentials` (capability service_accounts).
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [grant_type]
+              properties:
+                grant_type:
+                  type: string
+                  enum:
+                    - urn:ietf:params:oauth:grant-type:token-exchange
+                    - client_credentials
+                subject_token: { type: string }
+                subject_token_type:
+                  type: string
+                  enum:
+                    - urn:ietf:params:oauth:token-type:id_token
+                    - urn:ietf:params:oauth:token-type:access_token
+                requested_token_type:
+                  type: string
+                  enum: [urn:ietf:params:oauth:token-type:access_token]
+                audience:
+                  description: Optional; when present it must equal TENANT_ID.
+                  type: string
+                client_id:
+                  description: Optional platform client (azp); when present it must match the client the subject token was issued to.
+                  type: string
+                requested_subject:
+                  description: Reserved, delegation profile (impersonation, A5). The platform sub to act as.
+                  type: string
+                actor_token:
+                  description: Reserved, delegation profile (agents, A4). Never accepted in iam/1.0.
+                  type: string
+                actor_token_type:
+                  description: Reserved, delegation profile.
+                  type: string
+                reason:
+                  description: Reserved, delegation profile. Why the administrator looks (A5), shown to the person.
+                  type: string
+                  maxLength: 500
+                client_assertion_type:
+                  description: Reserved, service_accounts (RFC 7523).
+                  type: string
+                  enum: [urn:ietf:params:oauth:client-assertion-type:jwt-bearer]
+                client_assertion:
+                  description: Reserved, service_accounts.
+                  type: string
+      responses:
+        "200":
+          description: "OK. `Cache-Control: no-store`."
+          headers:
+            Cache-Control: { schema: { type: string, const: no-store } }
+          content:
+            application/json:
+              schema: { $ref: "../schemas/token-response.schema.json" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "503": { $ref: "#/components/responses/Problem" }
+
+  /api/iam/token/refresh:
+    post:
+      operationId: refreshToken
+      summary: Rotate the refresh token (RFC 6749 section 6)
+      x-edge: true
+      x-guard: public
+      description: |
+        The refresh token authenticates itself. Rotation: the presented token
+        is invalid at once and a new one is returned with the same session
+        (sid) end; roles and dept_path are resolved again. Reusing a rotated
+        token revokes the whole session (REFRESH_TOKEN_REUSED). An
+        AUTHZ_UNAVAILABLE failure does not consume the token.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [grant_type, refresh_token]
+              properties:
+                grant_type: { type: string, const: refresh_token }
+                refresh_token: { type: string }
+      responses:
+        "200":
+          description: "OK. `Cache-Control: no-store`."
+          content:
+            application/json:
+              schema: { $ref: "../schemas/token-response.schema.json" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "503": { $ref: "#/components/responses/Problem" }
+
+  /api/iam/logout:
+    post:
+      operationId: logout
+      summary: End the session of a refresh token
+      x-edge: true
+      x-guard: authenticated
+      description: |
+        Revokes every refresh token of the session (sid) the presented refresh
+        token belongs to, if it belongs to the caller's sub. Idempotent: an
+        unknown, expired or already revoked token answers 200 (RFC 7009
+        section 2.2). Access tokens already issued stay valid until they
+        expire (at most the access TTL).
+      security: [{ bearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200": { description: "Session ended (or nothing to end)." }
+        "400": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  /.well-known/jwks.json:
+    get:
+      operationId: getJwks
+      summary: The platform's signing keys; the value of IAM_JWKS_URL
+      x-edge: false
+      x-guard: public
+      responses:
+        "200":
+          description: "OK. `Cache-Control: public, max-age=300` (at most 3600)."
+          content:
+            application/json:
+              schema: { $ref: "../schemas/jwks.schema.json" }
+
+  /.well-known/oauth-authorization-server:
+    get:
+      operationId: getServerMetadata
+      summary: The platform issuer's metadata (RFC 8414 shape)
+      x-edge: false
+      x-guard: public
+      responses:
+        "200":
+          description: OK.
+          content:
+            application/json:
+              schema: { $ref: "../schemas/server-metadata.schema.json" }
+
+  /api/admin/iam/export:
+    get:
+      operationId: exportIdentity
+      summary: Export users and identity links as iam-export/1 NDJSON
+      x-edge: true
+      x-guard: infra.iam.admin
+      security: [{ bearer: [] }]
+      parameters:
+        - name: kinds
+          in: query
+          description: Comma-separated record kinds; default all the member holds.
+          schema: { type: string }
+      responses:
+        "200":
+          description: "The export, streamed. `Content-Disposition: attachment`."
+          content:
+            application/x-ndjson:
+              schema: { $ref: "../schemas/export-record.schema.json" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/iam/import:
+    post:
+      operationId: importIdentity
+      summary: Import an iam-export/1 file into this member
+      x-edge: true
+      x-guard: infra.iam.admin
+      security: [{ bearer: [] }]
+      description: |
+        All or nothing, in one transaction. Refused when the header's tenant_id
+        differs from TENANT_ID or its contract major is not iam/1, when the
+        footer's counts or sha256 do not match, or on the first conflicting
+        line (an (idp_issuer, idp_sub) already linked to another sub, a sub
+        that exists with another status history). Never drops a line silently.
+      parameters:
+        - name: dry_run
+          in: query
+          description: Validate and report, write nothing.
+          schema: { type: boolean, default: false }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/x-ndjson:
+            schema: { $ref: "../schemas/export-record.schema.json" }
+      responses:
+        "200":
+          description: Imported (or would be, on a dry run).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dry_run, counts]
+                properties:
+                  dry_run: { type: boolean }
+                  counts:
+                    type: object
+                    additionalProperties: { type: integer, minimum: 0 }
+        "400": { $ref: "#/components/responses/Problem" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+
+  /scim/v2/{resource}:
+    parameters:
+      - name: resource
+        in: path
+        required: true
+        schema: { type: string, enum: [Users, Groups, ServiceProviderConfig, Schemas, ResourceTypes] }
+    get:
+      operationId: scimRead
+      summary: SCIM 2.0 reads (RFC 7644 section 3.4)
+      x-edge: true
+      x-guard: public
+      x-capability: scim_inbound
+      description: Authenticated by the member's SCIM bearer secret, not by a platform token (DIRECTORY.md, "SCIM inbound"). Groups only with directory_departments.
+      security: [{ scimBearer: [] }]
+      responses:
+        "200": { description: "SCIM ListResponse or resource, `application/scim+json`." }
+        "401": { description: "Wrong or missing SCIM secret, SCIM error body." }
+        "501": { $ref: "#/components/responses/Problem" }
+    post:
+      operationId: scimCreate
+      summary: SCIM 2.0 create (RFC 7644 section 3.3)
+      x-edge: true
+      x-guard: public
+      x-capability: scim_inbound
+      security: [{ scimBearer: [] }]
+      responses:
+        "201": { description: "Created, `application/scim+json`." }
+        "409": { description: "uniqueness conflict, SCIM error body." }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /scim/v2/{resource}/{id}:
+    parameters:
+      - name: resource
+        in: path
+        required: true
+        schema: { type: string, enum: [Users, Groups] }
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      operationId: scimGet
+      x-edge: true
+      x-guard: public
+      x-capability: scim_inbound
+      security: [{ scimBearer: [] }]
+      responses:
+        "200": { description: "The resource." }
+        "404": { description: "SCIM error body." }
+    put:
+      operationId: scimReplace
+      x-edge: true
+      x-guard: public
+      x-capability: scim_inbound
+      security: [{ scimBearer: [] }]
+      responses:
+        "200": { description: "Replaced." }
+    patch:
+      operationId: scimPatch
+      x-edge: true
+      x-guard: public
+      x-capability: scim_inbound
+      security: [{ scimBearer: [] }]
+      responses:
+        "200": { description: "Patched (active=false disables the user)." }
+    delete:
+      operationId: scimDelete
+      x-edge: true
+      x-guard: public
+      x-capability: scim_inbound
+      security: [{ scimBearer: [] }]
+      responses:
+        "204": { description: "Deleted (the platform user is disabled, not erased)." }
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    scimBearer:
+      type: http
+      scheme: bearer
+      description: The member's SCIM secret (a secret configuration key of the member), compared in constant time.
+
+  responses:
+    Problem:
+      description: problem+json (be-protocol P4); reasons in errors.yaml (domain infra/iam) or reserved reasons of domain be.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code, reason, domain, detail, metadata, instance, request_id, trace_id]
+      properties:
+        type: { type: string, description: "urn:be:<domain>:<reason>" }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string }
+        reason: { type: string, pattern: "^[A-Z][A-Z0-9_]*$" }
+        domain: { type: string }
+        detail: { type: string }
+        metadata:
+          type: object
+          additionalProperties: { type: string }
+          description: On the token paths it always holds oauth_error.
+        instance: { type: string }
+        request_id: { type: string }
+        trace_id: { type: string }

@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/export-record.schema.json",
+  "title": "IAM export, one NDJSON line",
+  "description": "Format iam-export/1: UTF-8, one JSON object per line, LF line ends, no blank lines. First line kind header, last line kind footer, records in between grouped by kind in the order user, identity_link, department_link, department, membership, each group sorted by its natural key (user: sub; identity_link: idp_issuer, idp_sub; department_link and department: department_id; membership: sub), so two exports of one state differ only in header.exported_at. Same framing as authz-export/1 in contract-infra-authz. Rules for export and import: DIRECTORY.md, section 'Switching members'.",
+  "type": "object",
+  "required": [
+    "kind"
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/header"
+    },
+    {
+      "$ref": "#/$defs/user"
+    },
+    {
+      "$ref": "#/$defs/identity_link"
+    },
+    {
+      "$ref": "#/$defs/department_link"
+    },
+    {
+      "$ref": "#/$defs/department"
+    },
+    {
+      "$ref": "#/$defs/membership"
+    },
+    {
+      "$ref": "#/$defs/footer"
+    }
+  ],
+  "$defs": {
+    "uuidv7": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "instant": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "kinds": {
+      "enum": [
+        "user",
+        "identity_link",
+        "department_link",
+        "department",
+        "membership"
+      ]
+    },
+    "header": {
+      "type": "object",
+      "required": [
+        "kind",
+        "format",
+        "contract",
+        "member",
+        "exported_at",
+        "tenant_id",
+        "issuer",
+        "kinds"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "header"
+        },
+        "format": {
+          "const": "iam-export/1"
+        },
+        "contract": {
+          "type": "string",
+          "pattern": "^iam/1\\.(0|[1-9][0-9]*)$"
+        },
+        "member": {
+          "type": "object",
+          "required": [
+            "id",
+            "version"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "exported_at": {
+          "$ref": "#/$defs/instant"
+        },
+        "tenant_id": {
+          "description": "An import into a deployment with another TENANT_ID is refused.",
+          "type": "string"
+        },
+        "issuer": {
+          "description": "IAM_ISSUER of the exporting deployment; informational (the importer keeps its own).",
+          "type": "string"
+        },
+        "kinds": {
+          "description": "The record kinds this file holds. The importer treats an omitted kind as 'not carried over', never as 'empty'.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kinds"
+          },
+          "uniqueItems": true,
+          "contains": {
+            "const": "user"
+          }
+        }
+      }
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "kind",
+        "sub",
+        "status",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "user"
+        },
+        "sub": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "disabled"
+          ]
+        },
+        "username": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "email_verified": {
+          "type": "boolean"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "created_at": {
+          "$ref": "#/$defs/instant"
+        },
+        "version": {
+          "description": "The user aggregate version; the importer continues above it.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "bootstrap_admin": {
+          "description": "The user BOOTSTRAP_ADMIN_LOGIN was bound to. Carried over so the importing member never binds it a second time.",
+          "type": "boolean"
+        }
+      }
+    },
+    "identity_link": {
+      "type": "object",
+      "required": [
+        "kind",
+        "sub",
+        "idp",
+        "idp_issuer",
+        "idp_sub",
+        "linked_at",
+        "method"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "identity_link"
+        },
+        "sub": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "idp": {
+          "description": "A short label for the IdP product or tenant (casdoor, keycloak, entra, scim, ...); informational.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,31}$"
+        },
+        "idp_issuer": {
+          "description": "The IdP's iss, exactly as in its ID tokens. With idp_sub, the natural key.",
+          "type": "string",
+          "minLength": 1
+        },
+        "idp_sub": {
+          "description": "The IdP's sub, exactly as in its ID tokens.",
+          "type": "string",
+          "minLength": 1
+        },
+        "linked_at": {
+          "$ref": "#/$defs/instant"
+        },
+        "method": {
+          "description": "How the link was made: first_login (created a new platform user), exact (an existing link), email (opt-in auto-link by verified e-mail), username (opt-in migration-window link), admin, import (pre-mapped by an operator), scim (externalId of a SCIM push).",
+          "enum": [
+            "first_login",
+            "exact",
+            "email",
+            "username",
+            "admin",
+            "import",
+            "scim"
+          ]
+        },
+        "last_login_at": {
+          "$ref": "#/$defs/instant"
+        }
+      }
+    },
+    "department_link": {
+      "type": "object",
+      "required": [
+        "kind",
+        "department_id",
+        "idp_issuer",
+        "idp_group_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "department_link"
+        },
+        "department_id": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "idp_issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idp_group_id": {
+          "description": "The directory's id of the group or department (Casdoor group name, Keycloak group id, SCIM Group id).",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "department": {
+      "type": "object",
+      "required": [
+        "kind",
+        "department_id",
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "department"
+        },
+        "department_id": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "parent_id": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "code": {
+          "type": "string"
+        },
+        "sort_order": {
+          "type": "integer"
+        }
+      }
+    },
+    "membership": {
+      "type": "object",
+      "required": [
+        "kind",
+        "sub",
+        "memberships"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "membership"
+        },
+        "sub": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "department_id",
+              "primary"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "department_id": {
+                "$ref": "#/$defs/uuidv7"
+              },
+              "primary": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "footer": {
+      "type": "object",
+      "required": [
+        "kind",
+        "counts",
+        "sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "footer"
+        },
+        "counts": {
+          "description": "Records per kind; a kind listed in the header with no records has 0.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/kinds"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "sha256": {
+          "description": "Hex SHA-256 of the bytes of every line after the header and before the footer, each with its LF.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

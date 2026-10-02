@@ -1,0 +1,17 @@
+{
+  "header": { "alg": "EdDSA", "kid": "plat-ed-1", "typ": "JWT" },
+  "claims": {
+    "iss": "urn:be:t-test:iam",
+    "aud": ["t-test"],
+    "sub": "01926f3e-4c6b-7a10-9c2e-3b7d5e8f1a20",
+    "typ": "access",
+    "iat": 1789999970, "nbf": 1789999970, "exp": 1790000570,
+    "jti": "01926f3e-4c6b-7c00-8d11-0a1b2c3d4e60",
+    "tenant_id": "t-test",
+    "roles": ["sales.rep"],
+    "act": { "sub": "01926f3e-4c6b-7a10-9c2e-3b7d5e8f1a21", "kind": "user" },
+    "ceil": ["impersonate.read_only"],
+    "dg": "01926f3e-4c6b-7d00-a111-2b3c4d5e6f70",
+    "azp": "pc"
+  }
+}

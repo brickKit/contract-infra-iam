@@ -1,0 +1,15 @@
+{
+  "kty": "RSA",
+  "n": "xOrRyexfh9Urp-jTct5_RzeP2LQDEzKirrDuxt1y-7anZaeCoy4sEdjKhABfDV6ue-UcOidUQYDF19yuTr0yxPffgydJHI0yZgMNJcLeM9KTrx1_dk7qaTG4ao_Mu-GXvy3vX__Ih1MXI33kkrEt23JF1TxuZ2Zu1m3jLn4iZn_y93LZkung-cVh781Wj5favxvcWEORp6G1YVt1od7gacq7teJMbzoFsBvWwOH4veZ0pyueL-DSyMTO583o2QE-jtAY2wQfdoA1JLqIi50rQEuosmga_1xjg446zTzCXm7yJPmBALDVUJblGTz-COapqmxSPxl3rjHHISOPbKdBPQ",
+  "e": "AQAB",
+  "d": "Fc3djHMOser2AknqzfOams9pb2ihVYkcD-VaDy2aq4oSV5R4h-qXKSO86uhingefoOrh2QOdVgJ1Bb2zFFdpTXuX5X0eYJm23KpWVJnTAmB9B10oDbjXxm2hurTxCdXFOH9U2-el8-wMqhqoymBxkDTDTET8gZkLSVWSHAYN95Td1LJtpkHjFn5RE45OOJl8f73VJOHT4VJluby1KSVNviVAhErl7kWhUimmUI6b-l-OUNd9yGl3X8SgoobqxwEC4R3wrw2sSjyhZedVC5neClXzFqsabzkd3lnRvR_trNzDn5g8W1MNJqE4kTqt3bzHHFqS3YulNw3uh3dq4r7MwQ",
+  "p": "-m8KPqs9b81cZ8s_zzY4RUWc1vmscXHFgwgqyY40GAyvJhN9USCQYiqvhLfwjcvjowMwflFQhacIg2jqW5QW2id2KmzgyiKM3jkjzJ6QwZ1ib-NiwWAOamVYrdAsRcBTvlBd0hYNJ7YT-nUHs35bqvp5SAJGZi7RahTrv-ZPO8E",
+  "q": "yUtFutncddESN-1P_HTEkjHPNfTopJM62nVll48vCHt7W3FKisifpuXCGTaWAzQjMm2QOrFI-AsCCHsIcPz-Arc-WfTOXTl1vzMJBrLw0hX8kMKYsRcUJmpbnKveCcdx3vd1XWNcuiWrAuV_hT7ybxFln1VwYRFXOUDjoopMFH0",
+  "dp": "vaUq7-xDORAd4ufyqVsY37Roog8ufDY46RJdPIb4giHQ3RezNaVgUUab5fhZLTfyaXa32WCAhsXH16OynakWaRurC1OqIshpPruslX6ahlRFwA9EsMWqBP48Wlujuyp7AErh0X8rdSAYHvlS3KVai67j-xjl8OmRYjD3mjmxVME",
+  "dq": "ci2mMeSd7p5WzS5pLnQ1hA-Iz7xJsgBpY70vkRaAwTj5sdbDR5GhLZQp0w9pbAvI4zPOmdwx3bCwyIqxMRXwJy41yeTYoXyUU43pUslxXFloV9xprBnBLkEqEeZTHgzphGWtRvmzgUsYg54WBUi9T07467YU9ppVdX5fILV9jik",
+  "qi": "XQoZBzGJ0XIEe45e4edFOwRXOkVDT1BwWcGL--4UqBhn0Jvvs6lhbmvJaoWad2IFqTOxemGmpCdcLMlLb1tG24iVOEV7EWYDJ_hvlj4oveA_svQObWJTHdH255jFz9OjpngghDkIlOmAwRGbXdQ5RGHFX7nC_7BMruXx4vGgqG0",
+  "kid": "plat-rs-1",
+  "alg": "RS256",
+  "use": "sig",
+  "x_note": "TEST KEY ONLY, published on purpose: platform, previous RSA key (rotation)"
+}

@@ -1,0 +1,164 @@
+// Provider contract of the IAM slot family, iam/1.0.
+//
+// Implemented by every member of the family (infra/iam-casdoor,
+// infra/iam-keycloak, the generic OIDC + SCIM member). It is a system-plane
+// service (foundations 14): never routed through the edge, every call carries
+// the metadata be-caller, and a caller reaches it only through the shared
+// address IAM_URL, never through a dependency edge to a member.
+//
+// Rules for this file:
+// - Additive only within infra.iam.v1 (buf breaking, FILE). A breaking change
+//   is a new package infra.iam.v2.
+// - Every rpc states its idempotency_level.
+// - Batch and page limits are stated in comments; when be-protocol's
+//   be/v1/limits.proto is tagged they become (be.v1.max_items) options, which
+//   is a source-compatible addition.
+// - An rpc that belongs to an optional capability the member does not declare
+//   answers UNIMPLEMENTED with ErrorInfo{reason: CAPABILITY_UNAVAILABLE,
+//   domain: "be", metadata: {capability: <name>}}.
+// - Login, token exchange, refresh, logout and the JWKS are REST
+//   (openapi/iam.openapi.yaml): they are called by the browser or fetched as
+//   a document, not by components over the system plane.
+// - Directory changes are events (events/iam.events.json). These reads exist
+//   for lookups and for backfilling a snapshot (be-protocol P15).
+syntax = "proto3";
+
+package infra.iam.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/brickKit/contract-infra-iam/gen/go/infra/iam/v1;iamv1";
+
+service IamProvider {
+  // Platform users by platform sub. At most 500 subs; more answers
+  // INVALID_ARGUMENT with reason BATCH_TOO_LARGE (domain be). Users are
+  // returned in request order; an unknown sub is omitted (not an error).
+  // Disabled users are returned with their status; deleted users are omitted.
+  rpc BatchGetUsers(BatchGetUsersRequest) returns (BatchGetUsersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Every platform user, ordered by (updated_at, sub), paged by an opaque
+  // cursor. page_size at most 500 (default 100). Used to backfill a user
+  // snapshot before following infra.iam.user.*.v1 events.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // capability: directory_departments. The IdP directory's departments,
+  // ordered by (updated_at, department_id), paged like ListUsers.
+  rpc ListDepartments(ListDepartmentsRequest) returns (ListDepartmentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // capability: directory_departments. Each user's department memberships,
+  // one entry per user, ordered by (updated_at, sub), paged like ListUsers.
+  rpc ListMemberships(ListMembershipsRequest) returns (ListMembershipsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  // May sign in.
+  USER_STATUS_ACTIVE = 1;
+  // May not sign in; every refresh token of the user is revoked.
+  USER_STATUS_DISABLED = 2;
+}
+
+message ImAccount {
+  // "dingtalk", "wecom", "feishu", ...: the channel of an integration/im-* member.
+  string channel = 1;
+  // The account id within that channel (DingTalk unionid, ...).
+  string account_id = 2;
+}
+
+message User {
+  // Platform user id: a UUIDv7 owned by the platform, never the IdP's subject.
+  string sub = 1;
+  UserStatus status = 2;
+  // Login name as the IdP knows it; display only, never an identifier.
+  string username = 3;
+  string display_name = 4;
+  string email = 5;
+  bool email_verified = 6;
+  // E.164 when known.
+  string phone = 7;
+  // BCP 47, for server-rendered text (notifications, print).
+  string locale = 8;
+  repeated ImAccount im_accounts = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  // The user aggregate's version: the value of ce-aggregateversion on the
+  // latest infra.iam.user.*.v1 event for this sub.
+  int64 version = 11;
+}
+
+message BatchGetUsersRequest {
+  repeated string subs = 1;
+}
+
+message BatchGetUsersResponse {
+  repeated User users = 1;
+}
+
+message ListUsersRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  // Include disabled users (default false: active only).
+  bool include_disabled = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  // Empty on the last page.
+  string next_page_token = 2;
+}
+
+message Department {
+  // Platform department id: a UUIDv7 minted by the member, kept across a
+  // member switch through the export (department_link records).
+  string department_id = 1;
+  // Empty for a root.
+  string parent_id = 2;
+  string name = 3;
+  // Optional short code from the IdP directory.
+  string code = 4;
+  // Sibling order as the directory gives it.
+  int32 sort_order = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  int64 version = 7;
+}
+
+message ListDepartmentsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListDepartmentsResponse {
+  repeated Department departments = 1;
+  string next_page_token = 2;
+}
+
+message DepartmentMembership {
+  string department_id = 1;
+  // At most one membership of a user is primary.
+  bool primary = 2;
+}
+
+message UserMemberships {
+  string sub = 1;
+  // The complete set; empty means the user belongs to no department.
+  repeated DepartmentMembership memberships = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  int64 version = 4;
+}
+
+message ListMembershipsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListMembershipsResponse {
+  repeated UserMemberships users = 1;
+  string next_page_token = 2;
+}

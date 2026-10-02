@@ -1,0 +1,11 @@
+{
+  "kty": "EC",
+  "x": "GDijE6-hZxvc9raHc708UznAZiJphEIt4zU0M2fSi3M",
+  "y": "pR2gc0smlLadu3xUstlBU7HXd-smBACmwrOW2LuX2IM",
+  "crv": "P-256",
+  "d": "XE6bu4a90IkAz-KqhFTKzdkOfLqiLYH8WcJX2Ri0dfE",
+  "kid": "plat-ec-1",
+  "alg": "ES256",
+  "use": "sig",
+  "x_note": "TEST KEY ONLY, published on purpose: platform, P-256 key"
+}

@@ -1,0 +1,10 @@
+{
+  "crv": "Ed25519",
+  "d": "NGPQj2j1q1ypI-S8quXfe5xlBAIVCSOFFek-jZN_m6g",
+  "x": "5c7GibCdlZTidHm8raN0j8RAZ-GzT7YdP4H0i-M1rAo",
+  "kty": "OKP",
+  "kid": "plat-ed-1",
+  "alg": "EdDSA",
+  "use": "sig",
+  "x_note": "TEST KEY ONLY, published on purpose: platform, Ed25519 key"
+}

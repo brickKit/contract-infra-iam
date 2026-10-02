@@ -1,0 +1,22 @@
+{
+  "contract": "iam/1.0",
+  "client": "pc",
+  "idp": {
+    "issuer": "http://localhost:8000",
+    "discovery_url": "http://localhost:8000/.well-known/openid-configuration",
+    "client_id": "brickkit-pc",
+    "scopes": [
+      "openid",
+      "profile",
+      "email",
+      "offline_access"
+    ],
+    "response_type": "code",
+    "pkce_method": "S256",
+    "end_session_supported": true
+  },
+  "token_exchange": {
+    "endpoint": "/api/iam/token",
+    "subject_token_type": "urn:ietf:params:oauth:token-type:id_token"
+  }
+}

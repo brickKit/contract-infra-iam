@@ -1,0 +1,15 @@
+{
+  "kty": "RSA",
+  "n": "sDLbJLhOS2h0s9753DipXoMNzmKG74ijsbqP-cqsrbSZUwdvAE9qs2H6wqt7WfY1QNNRUD8YyTj4ANxhEOb3KDUeqy2dy0tELuKGmYB3TfaiIoTJUH-cEZzsgm7tGleROzjbiT5lENZSHdZqR8OpSVTIAkS9AmFMJu1XM7Q4to_GYw0IwCZ5ho8OQfR3pM3dfx62mtBh1VYaj9IwrRU_bJetXUkin9DtQkDBdbTHMGFi1JPJRlIZTjy8FaCWnrF-dA-mMzVDJtl6wTJEDM7qYk4h04jTk360XaptHfxs7avI6zz17h7kBZWoGK6I8eea47ExpjFO50_YUCgFycuZzQ",
+  "e": "AQAB",
+  "d": "MIK38gqqR7mpE9KqkRaqjuJfHTjkNLO2edrHA_togmSsJ_9ucLPsyRmLPCiRTAnszH3Br-nHTbNZGIeUU957Ir9JQ9DJ1mxRB-WHMGD9t-HU7tMHSBnyIqlFNn4K2otMaXU0gDtFARc4wY1EcqCsjYuBi5pYPX0DRd5neU0_pgdG9LKSuSUYRiPvX0j3GGLPOjp5Tdi2ZEEI2ox2J5pcTSxwgqPc_dhBQ5P9GN0_9oxAmfBfTTiFO6JCy2yUFWpBZo5p-hcKCuDHHxXqYFlvpEQqDvgddYXBdrrp4OqRPsWyFCljyuu6YvbwvGemhG60N7cwNsiHGPlIbyoZuGSlAw",
+  "p": "7HO2JBQ8p2xs1oVPq_isaNkPTdcMBW5_eernkumK-6uxIWJ9UOpQ0H7Ah4xtUb17REotkC9w_6nU3ZgCAgWASnpZYMnHZPaoOxL9aX3wk-6gFnFpMJpqCrDFX6aa7stTxslqLkoos8-TcHgCRnWaNtfJ_qO_ivFpdX0knA6S5pM",
+  "q": "vsPwKNdqiOkIiZHcwSd17dPI-Qe6HScCBuGbpLGXlqcz6wfWME3Y0_Xtpe7kg7tah3jMr1K9n7dMDC4pZvaHoaadqzXQMDz-ENdJf2sKHy4OKcH9Lqa3egSvL8LPzwdoqPS0x7T-dm5xkYZKwuY9j-GaZqWdzKaQDcLhk5CGWh8",
+  "dp": "OYR0PBaIIpnnZ8-J7-VP2zlh1aeIDxIwBDI2HrCc1FeRgPN6VGKLQgxzPQXV2dpjz9rTdo1zyV1AoJ7HbkJ0UKmucDLlRBQUHDqkVjMCgJm9a3gvBFmrjeouOPRIH-pp-KMqJxR3DjZiQSuQMh-NYeXgBwdCIsRSyPemHigVZ-0",
+  "dq": "HhkD9y2lnVxHAI2G6uKy9IcJmmDhuF_DLhrCV8W9SQOwaVCfNpfRsf-HMzrxyubwbZddk_vV9zEQSout9JTI6XRERBMFedblrvqImhXlTu4RRf1ZWNbs889xZHO0HdHpbV7OdwPTchQSzwcFHKL-64iIt9FBiFxvNfydYo7W47k",
+  "qi": "S3OO0UP2jfPSJlS6z6n7gDRMcDjppZry1185LBgeIulsZzHPOWQ4pPBzZwJfMOwbPxMNhys6EiKCb8E5zvE4xaJ8g7NfLJURy7UNZOp4Rv5o4cYVx7X9zZzxxz7PiiBUqjcBeXILRsKqpE1iT2_-j6W-2DH9LY1WmppfvNcWm3g",
+  "kid": "idp-rs-1",
+  "alg": "RS256",
+  "use": "sig",
+  "x_note": "TEST KEY ONLY, published on purpose: the IdP's key (subject-token vectors)"
+}

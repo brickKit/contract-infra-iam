@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/login-config.schema.json",
+  "title": "GET /api/iam/login-config?client=<azp>",
+  "description": "Everything the frontend needs to start a standard OIDC authorization-code + PKCE login, and nothing vendor-specific. The frontend fetches discovery_url and takes authorization_endpoint, token_endpoint, jwks_uri and end_session_endpoint from it (LOGIN.md). Public, through the edge.",
+  "type": "object",
+  "required": ["contract", "client", "idp", "token_exchange"],
+  "additionalProperties": false,
+  "properties": {
+    "contract": { "type": "string", "pattern": "^iam/1\\.(0|[1-9][0-9]*)$" },
+    "client": {
+      "description": "The platform client this configuration is for (the azp of the tokens it will receive).",
+      "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$"
+    },
+    "idp": {
+      "type": "object",
+      "required": ["issuer", "discovery_url", "client_id", "scopes", "response_type", "pkce_method", "end_session_supported"],
+      "additionalProperties": false,
+      "properties": {
+        "issuer": { "description": "The IdP's issuer as the browser sees it; the frontend checks that discovery's issuer equals it.", "type": "string", "format": "uri" },
+        "discovery_url": { "description": "issuer + /.well-known/openid-configuration, as the browser reaches it.", "type": "string", "format": "uri" },
+        "client_id": { "description": "The IdP client id registered for this platform client: a public client, no secret.", "type": "string", "minLength": 1 },
+        "scopes": {
+          "description": "Always contains openid; never offline_access (the platform session is the member's refresh token, not the IdP's).",
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "contains": { "const": "openid" },
+          "items": { "type": "string", "pattern": "^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$", "not": { "const": "offline_access" } }
+        },
+        "response_type": { "const": "code" },
+        "pkce_method": { "const": "S256" },
+        "end_session_supported": { "description": "Whether discovery has an end_session_endpoint the frontend may call with id_token_hint and post_logout_redirect_uri.", "type": "boolean" },
+        "extra_authorize_params": {
+          "description": "Member-specific query parameters added to the authorization request (for example a Keycloak kc_idp_hint). Values are strings; the frontend adds them without interpreting them.",
+          "type": "object", "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "token_exchange": {
+      "type": "object",
+      "required": ["endpoint", "subject_token_type"],
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": { "const": "/api/iam/token" },
+        "subject_token_type": { "const": "urn:ietf:params:oauth:token-type:id_token" }
+      }
+    }
+  }
+}

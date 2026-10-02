@@ -1,0 +1,35 @@
+openapi: 3.1.0
+info:
+  title: infra/iam-casdoor member extension
+  version: "1.0"
+  description: |
+    Member-specific path of infra/iam-casdoor (README.md in this directory).
+    Casdoor calls it on the project network at the member's own service name
+    (configuration WEBHOOK_CALLBACK_URL of the member). Not an edge route.
+  license: { name: Apache-2.0 }
+paths:
+  /api/iam/webhooks/casdoor:
+    post:
+      operationId: casdoorWebhook
+      summary: Casdoor user and group change callback
+      x-edge: false
+      x-guard: public
+      x-member: infra/iam-casdoor
+      description: |
+        The body is only a hint of which user or group changed. The member
+        records the delivery (deduplicated) and answers 200 at once; a
+        background queue re-reads the current state from Casdoor and publishes
+        infra.iam.user.*.v1 (and, with directory_departments, department and
+        membership events) through the outbox. Delivery order therefore never
+        decides the final state. Casdoor never redelivers, so the member also
+        reconciles periodically against Casdoor's user list.
+      security: [{ sharedSecretHeader: [] }]
+      responses:
+        "200": { description: Recorded (not yet published). }
+        "401": { description: Shared secret missing or wrong. }
+components:
+  securitySchemes:
+    sharedSecretHeader:
+      type: apiKey
+      in: header
+      name: X-Shared-Secret

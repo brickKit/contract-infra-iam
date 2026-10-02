@@ -1,0 +1,11 @@
+{
+  "kty": "EC",
+  "x": "7vSPsqGzhPLBLA4uzD0FhNqA1SW9q-xF01E-EJ63MJs",
+  "y": "BSP_0PW8WssIlMbrj2DOQElk8ckQNsgSqhDA5p0dM3E",
+  "crv": "P-256",
+  "d": "3P6aeLVxMccPalPs2go-KGnXJ2_uNs-H69RovxLN0d0",
+  "kid": "idp-ec-1",
+  "alg": "ES256",
+  "use": "sig",
+  "x_note": "TEST KEY ONLY, published on purpose: the IdP's second key"
+}

@@ -1,0 +1,2 @@
+{ "contract": "iam/1.0", "tenant_id": "t-test", "capabilities": ["core"], "default_locale": "zh-CN", "locales": ["zh-CN"],
+  "enabled_components": ["erp/sales"] }

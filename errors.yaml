@@ -1,0 +1,124 @@
+# Reasons of the IAM family, iam/1.0. Format: foundations 15, contracts/errors.yaml.
+# The domain is the family, not the member: every member raises the same
+# reasons, so the frontend translates them once. Append-only: a reason is never
+# renamed, removed or reused; it is retired with deprecated: true.
+# Reserved reasons of domain be (TOKEN_INVALID, TOKEN_STALE,
+# UNSUPPORTED_DELEGATION, CAPABILITY_UNAVAILABLE, INTERNAL, ...) are used as
+# they are and never redefined here.
+domain: infra/iam
+reasons:
+  - reason: INVALID_REQUEST
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [parameter]
+    oauth_error: invalid_request
+    title:   { en: "Invalid sign-in request", zh: "登录请求无效" }
+    message: { en: "The parameter {parameter} is missing or malformed", zh: "参数 {parameter} 缺失或格式不对" }
+    since: 1.0.0
+    deprecated: false
+  - reason: UNSUPPORTED_GRANT_TYPE
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [grant_type]
+    oauth_error: unsupported_grant_type
+    title:   { en: "Unsupported grant type", zh: "不支持的授权方式" }
+    message: { en: "grant_type {grant_type} is not supported by this member", zh: "当前身份组件不支持 grant_type {grant_type}" }
+    since: 1.0.0
+    deprecated: false
+  - reason: UNSUPPORTED_TOKEN_TYPE
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [token_type]
+    oauth_error: invalid_request
+    title:   { en: "Unsupported token type", zh: "不支持的令牌类型" }
+    message: { en: "Token type {token_type} cannot be exchanged here", zh: "这里不能交换 {token_type} 类型的令牌" }
+    since: 1.0.0
+    deprecated: false
+  - reason: INVALID_TARGET
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [audience]
+    oauth_error: invalid_target
+    title:   { en: "Unknown audience", zh: "未知的令牌受众" }
+    message: { en: "Tokens for {audience} are not issued by this deployment", zh: "本部署不签发受众为 {audience} 的令牌" }
+    since: 1.0.0
+    deprecated: false
+  - reason: SUBJECT_TOKEN_INVALID
+    code: UNAUTHENTICATED
+    http: 401
+    params: []
+    oauth_error: invalid_grant
+    title:   { en: "Sign-in could not be completed", zh: "登录未能完成" }
+    message: { en: "The identity provider's token was not accepted; please sign in again", zh: "身份提供方的令牌未被接受，请重新登录" }
+    since: 1.0.0
+    deprecated: false
+  - reason: ACCOUNT_NOT_LINKED
+    code: PERMISSION_DENIED
+    http: 403
+    params: []
+    oauth_error: invalid_grant
+    title:   { en: "Account not set up", zh: "账号尚未开通" }
+    message: { en: "Your sign-in worked, but no platform account is linked to it; ask an administrator", zh: "您已通过身份认证，但还没有关联的平台账号，请联系管理员" }
+    since: 1.0.0
+    deprecated: false
+  - reason: ACCOUNT_DISABLED
+    code: PERMISSION_DENIED
+    http: 403
+    params: []
+    oauth_error: invalid_grant
+    title:   { en: "Account disabled", zh: "账号已停用" }
+    message: { en: "This account has been disabled", zh: "该账号已被停用" }
+    since: 1.0.0
+    deprecated: false
+  - reason: REFRESH_TOKEN_INVALID
+    code: UNAUTHENTICATED
+    http: 401
+    params: []
+    oauth_error: invalid_grant
+    title:   { en: "Session ended", zh: "会话已结束" }
+    message: { en: "Please sign in again", zh: "请重新登录" }
+    since: 1.0.0
+    deprecated: false
+  - reason: REFRESH_TOKEN_REUSED
+    code: UNAUTHENTICATED
+    http: 401
+    params: []
+    oauth_error: invalid_grant
+    title:   { en: "Session ended for safety", zh: "出于安全原因会话已结束" }
+    message: { en: "This session was used from two places at once and has been closed; please sign in again", zh: "检测到同一会话被重复使用，已关闭，请重新登录" }
+    since: 1.0.0
+    deprecated: false
+  - reason: IDP_UNAVAILABLE
+    code: UNAVAILABLE
+    http: 503
+    params: []
+    oauth_error: temporarily_unavailable
+    title:   { en: "Sign-in temporarily unavailable", zh: "暂时无法登录" }
+    message: { en: "The identity provider cannot be reached; try again shortly", zh: "无法连接身份提供方，请稍后再试" }
+    since: 1.0.0
+    deprecated: false
+  - reason: AUTHZ_UNAVAILABLE
+    code: UNAVAILABLE
+    http: 503
+    params: []
+    oauth_error: temporarily_unavailable
+    title:   { en: "Sign-in temporarily unavailable", zh: "暂时无法登录" }
+    message: { en: "Roles cannot be resolved right now; try again shortly", zh: "暂时无法获取角色，请稍后再试" }
+    since: 1.0.0
+    deprecated: false
+  - reason: IMPORT_CONFLICT
+    code: ALREADY_EXISTS
+    http: 409
+    params: [line, detail]
+    title:   { en: "Import stopped", zh: "导入已中止" }
+    message: { en: "Line {line} conflicts with existing data: {detail}", zh: "第 {line} 行与现有数据冲突：{detail}" }
+    since: 1.0.0
+    deprecated: false
+  - reason: IMPORT_INVALID
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [line, detail]
+    title:   { en: "Import file invalid", zh: "导入文件无效" }
+    message: { en: "Line {line} is invalid: {detail}", zh: "第 {line} 行无效：{detail}" }
+    since: 1.0.0
+    deprecated: false

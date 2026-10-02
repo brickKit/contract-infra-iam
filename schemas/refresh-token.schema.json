@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/refresh-token.schema.json",
+  "title": "Platform refresh token, when a member issues it as a JWT",
+  "description": "A refresh token is opaque to the frontend and to every component. A member MAY use any format. When it is a JWT signed with a key published in the JWKS, it MUST match this schema, so that it fails a component's verification twice over: typ is refresh, and aud is the issuer itself, never TENANT_ID (TOKENS.md, 'Refresh token').",
+  "type": "object",
+  "required": ["header", "claims"],
+  "additionalProperties": false,
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["alg", "kid", "typ"],
+      "additionalProperties": false,
+      "properties": {
+        "alg": { "enum": ["RS256", "ES256", "EdDSA"] },
+        "kid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "typ": { "const": "JWT" }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "required": ["iss", "aud", "sub", "typ", "iat", "exp", "jti", "sid", "azp"],
+      "additionalProperties": false,
+      "properties": {
+        "iss": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "aud": {
+          "description": "Exactly [IAM_ISSUER].",
+          "type": "array", "minItems": 1, "maxItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 255 }
+        },
+        "sub": { "$ref": "access-token.schema.json#/$defs/subject" },
+        "typ": { "const": "refresh" },
+        "iat": { "type": "integer", "minimum": 0 },
+        "exp": {
+          "description": "Never later than the session's absolute end (login time + REFRESH_TOKEN_TTL_SECONDS); rotation never extends a session.",
+          "type": "integer", "minimum": 0
+        },
+        "jti": { "$ref": "access-token.schema.json#/$defs/uuidv7" },
+        "sid": {
+          "description": "The session (rotation family) id: the same across rotations; reuse of a rotated jti revokes every token of the sid.",
+          "$ref": "access-token.schema.json#/$defs/uuidv7"
+        },
+        "azp": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" }
+      }
+    }
+  }
+}

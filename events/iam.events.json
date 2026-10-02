@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IAM family events, iam/1.0",
+  "note": "Published by every member of the IAM slot family; ce-source is the member's component ID, ce-dataschema is contract-infra-iam@<tag>/events/iam.events.json#<subject>. Envelope: CloudEvents 1.0 binary mode as in be-protocol P12 and foundations 13; nothing of the envelope is repeated in a payload. Additive only: fields and subjects are added, never removed, renamed, retyped or given a new meaning. Consumers read leniently. Every event is state mode: a payload carries the aggregate's whole state at ce-aggregateversion, so a consumer that skips versions or sees them out of order still converges. How a member learns of a change (webhook, polling admin events, SCIM inbound) is its own business (DIRECTORY.md). Event entries use the key names of be-protocol events-contract.schema.json (x-aggregate-type, x-consumption); the other keys (aggregate_id, capability, publishers, grade) are this family format's additions.",
+  "events": [
+    {
+      "subject": "infra.iam.user.created.v1",
+      "x-aggregate-type": "infra.iam.user",
+      "x-consumption": "state",
+      "grade": "core",
+      "note": "A platform user was created: first login of an unknown IdP account, a SCIM push, an admin action, or an import. ce-subject is the platform sub. Consumers: infra/notification (contact snapshot), integration/im-* (account matching), infra/authz members (directory sync). When this first login matches BOOTSTRAP_ADMIN_LOGIN, the payload carries bootstrap_admin: true.",
+      "payload": {
+        "$ref": "#/$defs/user_state"
+      }
+    },
+    {
+      "subject": "infra.iam.user.updated.v1",
+      "x-aggregate-type": "infra.iam.user",
+      "x-consumption": "state",
+      "grade": "core",
+      "note": "Any change to the user's profile or status other than disabling and deleting, including re-enabling (status back to active).",
+      "payload": {
+        "$ref": "#/$defs/user_state"
+      }
+    },
+    {
+      "subject": "infra.iam.user.disabled.v1",
+      "x-aggregate-type": "infra.iam.user",
+      "x-consumption": "state",
+      "grade": "core",
+      "note": "The user may no longer sign in. In the same transaction the member revokes every refresh token of the sub and refuses further exchanges. Published within 30 s of the member learning of it. Consumers stop sending to the person; infra/authz members set stale_since[sub] so access tokens already issued stop working within one bundle poll (contract-infra-authz).",
+      "payload": {
+        "$ref": "#/$defs/user_state"
+      }
+    },
+    {
+      "subject": "infra.iam.user.deleted.v1",
+      "x-aggregate-type": "infra.iam.user",
+      "x-consumption": "state",
+      "grade": "core",
+      "note": "The person was erased: the member keeps only the sub (so it is never reused) and drops the identity links. Consumers erase the personal data they hold for the sub and keep only the sub in business records (data lifecycle, erasure). Final version of the aggregate.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "sub",
+          "status",
+          "deleted_at"
+        ],
+        "properties": {
+          "sub": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "status": {
+            "const": "deleted"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.iam.department.created.v1",
+      "x-aggregate-type": "infra.iam.department",
+      "x-consumption": "state",
+      "grade": "core",
+      "capability": "directory_departments",
+      "note": "A department appeared in the IdP directory. ce-subject is the platform department_id. Only from members that declare directory_departments. Which component turns directory departments into the platform's department tree (the one dept_path is built from) is settled in mdm/org's design; until then infra/authz members own the tree and may consume these events to sync it.",
+      "payload": {
+        "$ref": "#/$defs/department_state"
+      }
+    },
+    {
+      "subject": "infra.iam.department.updated.v1",
+      "x-aggregate-type": "infra.iam.department",
+      "x-consumption": "state",
+      "grade": "core",
+      "capability": "directory_departments",
+      "note": "Rename, move (parent_id changed), code or order changed.",
+      "payload": {
+        "$ref": "#/$defs/department_state"
+      }
+    },
+    {
+      "subject": "infra.iam.department.deleted.v1",
+      "x-aggregate-type": "infra.iam.department",
+      "x-consumption": "state",
+      "grade": "core",
+      "capability": "directory_departments",
+      "note": "The department left the directory. Memberships in it are removed by membership.changed events of the affected users, published before this one.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "department_id",
+          "status"
+        ],
+        "properties": {
+          "department_id": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "status": {
+            "const": "deleted"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.iam.membership.changed.v1",
+      "x-aggregate-type": "infra.iam.user_membership",
+      "x-consumption": "state",
+      "grade": "core",
+      "capability": "directory_departments",
+      "note": "The complete set of a user's department memberships after a change. ce-subject is the platform sub; the aggregate is separate from infra.iam.user and has its own version, so profile and membership changes never race each other.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "sub",
+          "memberships"
+        ],
+        "properties": {
+          "sub": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "memberships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "department_id",
+                "primary"
+              ],
+              "properties": {
+                "department_id": {
+                  "$ref": "#/$defs/uuidv7"
+                },
+                "primary": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.iam.login.v1",
+      "x-aggregate-type": "infra.iam.session",
+      "x-consumption": "state",
+      "grade": "peripheral",
+      "note": "A login exchange succeeded and a session (sid) began. For audit only; drives nothing. ce-subject is the sid.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "sid",
+          "sub",
+          "azp",
+          "idp_issuer",
+          "occurred_at"
+        ],
+        "properties": {
+          "sid": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "sub": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "azp": {
+            "type": "string"
+          },
+          "idp_issuer": {
+            "type": "string"
+          },
+          "link_method": {
+            "enum": [
+              "first_login",
+              "exact",
+              "email",
+              "username",
+              "admin",
+              "import",
+              "scim"
+            ]
+          },
+          "ip": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.iam.impersonation.started.v1",
+      "x-aggregate-type": "infra.iam.delegated_session",
+      "x-consumption": "state",
+      "grade": "core",
+      "capability": "token_exchange_delegation",
+      "reserved": true,
+      "note": "Reserved (A5, built with the delegation profile, not in 3.0.0). An administrator obtained a read-only token acting as sub. ce-subject is dg. infra/notification tells the person who looked and until when.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "dg",
+          "sub",
+          "actor_sub",
+          "expires_at"
+        ],
+        "properties": {
+          "dg": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "sub": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "actor_sub": {
+            "$ref": "#/$defs/uuidv7"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuidv7": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "user_state": {
+      "type": "object",
+      "required": [
+        "sub",
+        "status",
+        "display_name"
+      ],
+      "properties": {
+        "sub": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "disabled"
+          ]
+        },
+        "username": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "email_verified": {
+          "type": "boolean"
+        },
+        "phone": {
+          "type": "string",
+          "description": "E.164 when known. integration/im-dingtalk matches DingTalk accounts by it."
+        },
+        "locale": {
+          "type": "string"
+        },
+        "im_accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "channel",
+              "account_id"
+            ],
+            "properties": {
+              "channel": {
+                "type": "string"
+              },
+              "account_id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "bootstrap_admin": {
+          "type": "boolean",
+          "description": "True on the one event that binds BOOTSTRAP_ADMIN_LOGIN to this sub (TOKENS.md / DIRECTORY.md, 'Bootstrap administrator'): the created event of that person's first login, or an updated event if the person existed before the key was set. Absent otherwise. infra/authz members grant their bootstrap administrator role on it, idempotently."
+        }
+      }
+    },
+    "department_state": {
+      "type": "object",
+      "required": [
+        "department_id",
+        "name"
+      ],
+      "properties": {
+        "department_id": {
+          "$ref": "#/$defs/uuidv7"
+        },
+        "parent_id": {
+          "$ref": "#/$defs/uuidv7",
+          "description": "Absent for a root."
+        },
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "sort_order": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

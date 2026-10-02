@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/idp-discovery.schema.json",
+  "title": "Requirements on the IdP's OIDC discovery document",
+  "description": "What a member's IdP must publish at /.well-known/openid-configuration for the family's login flow (LOGIN.md, 'IdP discovery'). A member whose IdP fails this does not conform. Checked by iamconf against the real IdP container; verified against Casdoor v4.1.0 (repro r1-09). Extra members are allowed.",
+  "type": "object",
+  "required": ["issuer", "authorization_endpoint", "token_endpoint", "jwks_uri", "response_types_supported", "code_challenge_methods_supported", "id_token_signing_alg_values_supported"],
+  "properties": {
+    "issuer": { "type": "string", "format": "uri" },
+    "authorization_endpoint": { "type": "string", "format": "uri" },
+    "token_endpoint": { "type": "string", "format": "uri" },
+    "jwks_uri": { "type": "string", "format": "uri" },
+    "end_session_endpoint": { "type": "string", "format": "uri" },
+    "response_types_supported": { "type": "array", "contains": { "const": "code" } },
+    "code_challenge_methods_supported": { "type": "array", "contains": { "const": "S256" } },
+    "id_token_signing_alg_values_supported": {
+      "type": "array",
+      "contains": { "enum": ["RS256", "ES256", "EdDSA"] }
+    },
+    "grant_types_supported": { "type": "array", "contains": { "const": "authorization_code" } }
+  }
+}

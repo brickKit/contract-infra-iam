@@ -1,0 +1,13 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
+  except:
+    # The service keeps the role name of the slot family, infra.iam.v1.IamProvider
+    # ("the provider"), like infra.authz.v2.AuthzProvider in contract-infra-authz.
+    - SERVICE_SUFFIX
+breaking:
+  use:
+    - FILE

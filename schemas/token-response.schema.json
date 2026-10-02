@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/token-response.schema.json",
+  "title": "200 response of POST /api/iam/token and POST /api/iam/token/refresh",
+  "description": "RFC 8693 section 2.2.1 (token exchange) and RFC 6749 section 5.1 (refresh). Sent with Cache-Control: no-store. refresh_token is present after a login exchange and a refresh, absent after a delegation exchange (reserved) and a client-credentials grant (reserved).",
+  "type": "object",
+  "required": ["access_token", "issued_token_type", "token_type", "expires_in"],
+  "properties": {
+    "access_token": { "type": "string", "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$" },
+    "issued_token_type": { "const": "urn:ietf:params:oauth:token-type:access_token" },
+    "token_type": { "const": "Bearer" },
+    "expires_in": { "type": "integer", "minimum": 1, "maximum": 3600 },
+    "refresh_token": { "type": "string", "minLength": 16 },
+    "refresh_expires_in": { "description": "Seconds until the session's absolute end.", "type": "integer", "minimum": 1 }
+  }
+}

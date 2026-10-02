@@ -1,0 +1,26 @@
+{
+  "header": {
+    "alg": "RS256",
+    "kid": "plat-rs-2",
+    "typ": "JWT"
+  },
+  "claims": {
+    "iss": "urn:be:t-test:iam",
+    "aud": [
+      "t-test"
+    ],
+    "sub": "21ff3de6-c4be-4069-9715-3c7997b4c7f7",
+    "typ": "access",
+    "iat": 1789999970,
+    "nbf": 1789999970,
+    "exp": 1790000570,
+    "jti": "01926f3e-4c6b-7c00-8d11-0a1b2c3d4e5f",
+    "tenant_id": "t-test",
+    "roles": [
+      "sales.rep"
+    ],
+    "dept_path": "/01926f3e-0000-7000-8000-000000000001/",
+    "azp": "pc",
+    "locale": "zh-CN"
+  }
+}

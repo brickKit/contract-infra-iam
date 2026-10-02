@@ -1,0 +1,405 @@
+{
+  "format": "iam-vectors/1",
+  "contract": "iam/1.0",
+  "kind": "subject_token_verification",
+  "description": "An IAM member's verification of the IdP ID token presented as subject_token to POST /api/iam/token (TOKENS.md 'Subject token'). Compare `valid` and, when false, `status`, `reason`, `domain`; when true, `idp_issuer`, `idp_sub` and `client_id` (the trusted client the token was issued to). Single use of a subject token is stateful and tested by iamconf, not here.",
+  "defaults": {
+    "now": 1790000000,
+    "idp_issuer": "https://idp.example.test",
+    "trusted_client_ids": [
+      "spa-pc-client",
+      "spa-mobile-client"
+    ],
+    "skew_seconds": 60,
+    "max_age_seconds": 600,
+    "algorithms": [
+      "RS256",
+      "ES256",
+      "EdDSA"
+    ],
+    "jwks": {
+      "keys": [
+        {
+          "kty": "RSA",
+          "n": "sDLbJLhOS2h0s9753DipXoMNzmKG74ijsbqP-cqsrbSZUwdvAE9qs2H6wqt7WfY1QNNRUD8YyTj4ANxhEOb3KDUeqy2dy0tELuKGmYB3TfaiIoTJUH-cEZzsgm7tGleROzjbiT5lENZSHdZqR8OpSVTIAkS9AmFMJu1XM7Q4to_GYw0IwCZ5ho8OQfR3pM3dfx62mtBh1VYaj9IwrRU_bJetXUkin9DtQkDBdbTHMGFi1JPJRlIZTjy8FaCWnrF-dA-mMzVDJtl6wTJEDM7qYk4h04jTk360XaptHfxs7avI6zz17h7kBZWoGK6I8eea47ExpjFO50_YUCgFycuZzQ",
+          "e": "AQAB",
+          "kid": "idp-rs-1",
+          "alg": "RS256",
+          "use": "sig"
+        },
+        {
+          "kty": "EC",
+          "x": "7vSPsqGzhPLBLA4uzD0FhNqA1SW9q-xF01E-EJ63MJs",
+          "y": "BSP_0PW8WssIlMbrj2DOQElk8ckQNsgSqhDA5p0dM3E",
+          "crv": "P-256",
+          "kid": "idp-ec-1",
+          "alg": "ES256",
+          "use": "sig"
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "ST-001",
+      "name": "valid generic OIDC ID token",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.HnzKtWPqDwCzFj5AgcbvsSSe73Ud9GazcUrgP0T4ouPUJuS-sitMK_T1XSG6hMdOnYdQ096qrLTkUsDerOY56C5nJNobOmuDbKFRSZd71JbhMs5KdRQ_y18t75FVkufT1YP_ZDcuZkmezj7xZxCUm5gkzZA9_YxYRhH4MSCarpShHyD9h03SjrhrLdhHoAIejggw4YRYJwG3zywKIwYb97NKl6uJ4Ve7hMw5tYjTE-TMH1qvZSa_LzXeGKyHzcs5Loq33HoL0j9PmzFhuzQ6kz2gfgK0aqag_kC9HUhhyoAjOQEvo0XwKCMLwXvxaU3A6bcE-JjJEAlKmA72PCtM8Q",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-002",
+      "name": "valid, ES256 key of the IdP",
+      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImlkcC1lYy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.9t3qip2dHs9f0EBsKhO6r08id8Rgl39kXP03tFcMJXqYfH3UpEFeZzHcd21lG2ncu8fqOgCexJhmU9HkcEtcRg",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-003",
+      "name": "aud is a client the member does not trust",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsib3RoZXItYXBwIl0sInN1YiI6ImlkcC11c2VyLTdmM2EiLCJpYXQiOjE3ODk5OTk5ODAsImV4cCI6MTc5MDAwMzU4MCwibm9uY2UiOiJuLTEiLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUudGVzdCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiQWxpY2UifQ.p1xVepSTOemgN7k93nA7-NyiBuw676Z6HTuNovhkxGXrS9P5SUYVKrC5vg3yZQ9Y2m0EKuubtZA8b0eQKtMEQGGFPiz1_y2U2RjvtWEYSH8a30e9CROAU2y8e_OG1rGDKU_roCJTRuu4VPivHwnQfg24Fbuqi1HJTeleFF23jv3gnJ-JOJ2JzHEW57-E0t0jsuSp0w0gnOveyq9wLAC0ahhumNwLauLbECQOLMBOvEQ7UeB8Vbt0RCc_Dt3SS-NnMtHRhumyhrP90YVShawtobd9xTr-y5C24fm0F1GL_UUOxLzImzKzZdKm8-pW9bITr5WFKBFNbTCWxbrE_ICnEw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "aud",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-004",
+      "name": "several audiences, no azp (OIDC Core 3.1.3.7)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCIsIm90aGVyLWFwcCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.jBhI5XWZhoBWuoUZDj77Uav1gqHOx6T0Xpx9ct_c2fHewztrj0RWG9fJfMg0DcYQO6OxoM0Dg3W7_50bJiy4UBCOsh7vfr9D6mIXvqm58YXYRWMnEfDTDDSvDRFyDdbuxxdZiouLhx9U5sQYtQ7pU4e37wQcwMsMYbJn7GGrGmCSnzGf4UKsKU9QIa8YsyKjfEjnzuaNPHPYTE3U6geZIHacKtEvyNfrbxXEBMBgi1BYXgWFugNqKpQJhLJdVJ4JI88nVMwP3ayaM0G8HFEIQZHOrMavp-j9OUmPA_mn5PwvbMqgVK4CuKyUzEq12LbrqQkWC4HrzzsiooWfVykyqw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "azp",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-005",
+      "name": "several audiences, azp a trusted client",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCIsIm90aGVyLWFwcCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwiYXpwIjoic3BhLXBjLWNsaWVudCJ9.JBGuHuuH18xTY9lCLFhxPoIyQ7BXnkyIpul4cV7vThquWCaqvU-ber7fMBw3Mq4TSEs4xaCByfczRMV9PYVS6y47hgIynew0PcriflgFO5ASJ3pkM_l9WwKvswcICxYZB3YD-2YYno2gt2PSK9CH-7K3wp2m-NB8RDwcZ6VXpuqI-nxzbhXJXHqVQAtD_T1tW8YUmvdN5L_ibchJ8mZ9zaucEng0Ecgbv-VNHgCuKhd4ujjJLuc0xiKSkm3pPqc_87OxWB5zHA1E5nSjiLBhwhSpfet9new7iKN8Mkr6Y_rx3dXBIRVeUMA_V_4tLLjLmD-QnGWNMWQh7gFLGpIWeQ",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-006",
+      "name": "azp present but not a trusted client",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwiYXpwIjoib3RoZXItYXBwIn0.JwGXg0dvEo6_aT13q7km6Q9tmZEELKMIsh5Frhsoj1op978jfYvsOieje9YuKhDgeks-yCJpBx08rMaUfbnOc8qrQ6ehWpyrySRzwr4ZtnA80uXR-i_YZu4evvMR65VwAhXUHUjrj71NMakjYRqIQwwOCgEfVN1M68QBNPfXKmVt5p8sMjZ5pC7hz6djFdzgtwp7cp4-q22FNjTpZJNMJaoU73b8u2hSBQc__FxTMUuuxr3mHbN24GPQLodfaVGNzpdwoNWvQBpsABWztLokzZ4fSkZO9gz34Nfs2XPSDm2tBd1KZfUS9E27ucK4EKXwwXXfc32KUDBk3iVn18TNKw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "azp",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-007",
+      "name": "aud as a plain string",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOiJzcGEtcGMtY2xpZW50Iiwic3ViIjoiaWRwLXVzZXItN2YzYSIsImlhdCI6MTc4OTk5OTk4MCwiZXhwIjoxNzkwMDAzNTgwLCJub25jZSI6Im4tMSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS50ZXN0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJBbGljZSJ9.JaiJ-gSyHSg6GfP0nlKyjyEC69aXc64G5m-9ol9c6jBk7BgVKR8Fi198cH5Ay8IkJGfbUaoWrN1Ae-h7YQl41DcE2w40ZV5-sZ7FQ1FYP3XloIHqmZxiIjcpXG5aVxmcPjwZPJb60q_-Q8KOzxIuIYnGZbU_d2K9n-B6kXADsr_1gtQhmcFPABt7ftRWdx8SwmuefAVDkOYn5l7DfPWCZVuUB7d7Zig7YrdA7LD2rXuM4ut8XqOABRekxblbtAdXb4SDyoZ-zqC2LqjVXiDXTQXlx21IWGpfbwUBqbnj985Fb8ZYlik8aOJlZI24d5pRtQT07st7rn3X2UOnf4CitQ",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-008",
+      "name": "second trusted client (mobile)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLW1vYmlsZS1jbGllbnQiXSwic3ViIjoiaWRwLXVzZXItN2YzYSIsImlhdCI6MTc4OTk5OTk4MCwiZXhwIjoxNzkwMDAzNTgwLCJub25jZSI6Im4tMSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS50ZXN0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJBbGljZSJ9.awqA5BJ-41z0ii0WvlxHfGsGw9iPXucJXWaeKyxecilf4qXwg_lqqQ_wYEEOcIhRnfogOsUACAOOHGplmOcTjjxmc37GMPUNAI6LG9yk6YHJekQ2H79_89w0pdZxNwd98Qpr-j6M1NjZAyNb2uSfswcJz1YTuB-zZYEWgGkKLVRSItm7VOpDr-7lpj6TBxiJtpBQMl2tmpj2LNU5-4J6oZFygKNjq7C8bOY_D9uJF0xToec3iJsriLKq7lRc8aZ0kvJK_OdPbs5fycVwus8KVTGQn1GzVk2YrKHFmluZEBQPrgQHNUJZsO5BcSX35ulBEBkeHV9R7q5YdpFeDpJkjw",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-mobile-client"
+      }
+    },
+    {
+      "id": "ST-009",
+      "name": "iss is not the IdP",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2V2aWwuZXhhbXBsZS50ZXN0IiwiYXVkIjpbInNwYS1wYy1jbGllbnQiXSwic3ViIjoiaWRwLXVzZXItN2YzYSIsImlhdCI6MTc4OTk5OTk4MCwiZXhwIjoxNzkwMDAzNTgwLCJub25jZSI6Im4tMSIsImVtYWlsIjoiYWxpY2VAZXhhbXBsZS50ZXN0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJBbGljZSJ9.h2NtPiyOAfC8BbPPfwUUfv_6oSpnOMWrZ-kwsCVgq4Y83kCh4hHh0XLE-ynerrn9lM08tJHPqafFgaCQKdrarb1YhizJv-UNSzhH5IP5KA-KzietcWehuEw4OxTBxNRBw9qeP1RseRSRdfpq8qULmZLCVsi4hb57kofDiUkmj0F5z4QQ3IJxCkCOjQlhpEqr-odTJbLBDkucr7AIWiyG47J7usmDrdp4-6_l3RW30iusdIWV2X1zW2JKpWGcOVY06nfTU6mtHHd-did_coUzDVdcIEbjAGNh1RUrJtlbRymiFsx_Hc_3CCHiRLkXyNwMVCvy8qYEuYOE8viG09gAig",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "iss",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-010",
+      "name": "expired beyond the skew",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk2MDAwLCJleHAiOjE3ODk5OTk5MzksIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.W18U7RvI0S_DPn-6B9rkesPu2mRnaTDxOYmVo6Tv-fRyOSrijhVPsmZI0caM4sYskC6mlQKxO0YKGK1z1BM18TBHBVhb-rjsz93xUCeL-cmSf0s48rktmmuiqvr04Jnt2NlL7-_DuheiBeC501D5vAZl8ZNp9FuzKZKegjUT4HXXuZFgDdnEA5I3MIkE-10Qg_1Pox-bvk6OX3YFJEhp1cETMjb5DvC8Vfll-ixN-bsFlD5r1zn5VQiXAVgrBRhfPXQcWjNvjdil6wZiszHnvuljqN_XfiSFAC5s0-9jdG6BecXEKS3HbgMxaKPqCvb4YNvy6XTb52RfRbB4agvMUg",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "exp",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-011",
+      "name": "older than max_age + skew even though not expired",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5MzM5LCJleHAiOjE3OTAwMDI5MzksIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.Oy2KOn7eqFZd94-ZMqe0jVE5-rU4IGGGikuXAxj8_4HVUGCn4CFtfwqNrx6vpMqCWOlu_NmJU06FoXjGe92whXEGD0rbYEO4ZPPtyP89BETHVcpzp_VnV4f_eSlZIvEm8tXqbmXUbP6nT8Key2JtENsDv-J1PZSr0zW_KRSiRu91pAIaEweqR-NtYVS0-A77GjYC5xwPCLOrXbtQW2V-dRZoUNl9fyjgMvrvqB7YRIBcYxioPmqGpr9kJChqhPJbUJ4w0i7kpTTbIc9FoV6MOOQs3uhUIA119ln_7FiF2544NrMwcap_XCYWrVEcL5-hnuyyoXK273COZoRjilemyw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "max_age",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-027",
+      "name": "exactly max_age + skew old is still accepted",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5MzQwLCJleHAiOjE3OTAwMDI5NDAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.S54C6WvcCEDGqw4AzQibN8uPihppe9oxtcjMOEtGhhZUaClH7d10oM59KBqIzbaWdjHPQJcRE2Ugc718SREYtcGiyXQwzkJp1rEje3Wl3ElkZApjppMaE7QYEPmeVnkNK-_f1f-BDxBJ6oJMGgwQMa918p_nWKtwKdO5zSQ70ltx06FkqIB-R0cjN1i_t5CWlu07V5_bP0-FSHO0mNyaSi0jDOduQkxsa6nHLZIkGdSpEPwdm5opl9OuOZDgvv2HrSpW_G_Zc5l1PN3Yo4NKi0PT-ds17SfUFsfgnJbSr8Ym7w4xeuIwnGOKAo5-xO7RBuSYN7OqDgjyv8bJowCQHg",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-012",
+      "name": "iat in the future beyond the skew",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzkwMDAwMDYxLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.avTOK3BmCf6Wwa0LPz5XLycnetikwMI8uD9R0mzylEYaiuWCJL9FFHemF-y-6iFHCYR3rPaQyI2zOOWf0ca9x-buPe1la55gVbHozjWGiPiCfBb8d63jq4gsxBWXoBfBFe1D4fIJcWeRWj7WlHqqLt40tlNjsOLLdV2CfOXqJC9BAm5b_Ci6gXJXqj1DJu9lAPthKJKvMMeMO5E5-VXI6q3ZmeTX_rgg3JVgKqsFN5M8pRx_PGPASS1L-Xp1EzxdxK_4d27OKOGOjSyxoC_mKBVz1KK_bTRbReVad8LrduznFXixQ7dK9mMzTVz9YoRp34yPStS9bkQZ_Cljm43Igw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "iat",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-013",
+      "name": "nbf in the future beyond the skew",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwibmJmIjoxNzkwMDAwMDYxfQ.fidaY3MrNe8MAq5vFXOGQ-nOKtyLhlM8wJmBLLkO6C9xlSjqXddhu8pnibjfZ-UnQTr2r6aos1ZS4ewUPRjZCFeB_qwUV7MyIZZ4pe6iqbf0ZSz5MWP_p-Ca_gCdsP-WSp1tHRdHZVkSFQSyA-GVa0NXY9LhyEAdbvmFNAYV_Q8uywsmnffDUSCFZWTRNeLbIQtLw6bJXGUR9rAzq4hsZ-oyTd6WwarSp_5XAHS3zj9EvF-gtc1uDdwn3Jjblmu9yDqLZgKatLkz76sUpcBDG1jh1AmN413o5ZJBQsUscXAQEmb1SBNmaUQBnrBHRQWZ2q1Teds7-yNaw3BqAEizfg",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "nbf",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-014",
+      "name": "missing sub",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJpYXQiOjE3ODk5OTk5ODAsImV4cCI6MTc5MDAwMzU4MCwibm9uY2UiOiJuLTEiLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUudGVzdCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiQWxpY2UifQ.eF0vcSpsNbRj2ni3FvpBF9jGKkoOLTgkR_YQk94eZoCr_8LG-BBEf3u2pkrMjaIp-7Uo9lHIpWnxbqrC72vRJSdtoVBojMAudTUHlrQ7pr3LAh0Xc48jpGWk8OIBBcGw4N_NiQlsnTr1Wfowej3B2IhBUCsh8K9ArOPGFhMUOndHVHW8Ojgza-DaeOpZKaqDlKioyOc-AIkUjvsVa-SCLlNXUqcUsP7-VC-rcM0sae5wjIRBWWgf6wL1To3t4MS7YfT5Bnz2IfxGH0F8PpetBq_2IbaNKUn7h5P69naGT8oh9w6w6rnDwwzzmirP-Fy5Il3KmeGQvFGHs99hcvM9pg",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "sub",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-015",
+      "name": "missing kid",
+      "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.Yzl1kOuFKR0LJP3ng84XxNk8tHzmgs7MBlNPj9SffslR2yxjvuvsabfge_tOTAci95yf-LDk1JCvnZZs2jWyLxgkzXVgyjcgTmiPwILTP4Lz3tJESey5yd-YeIb8xgH4Cddpu9WHYOfurO352MrOOGBqYz_GZI7Ygpl6TeoGaFi6Z70aw1D1FjdO11b5CnN_I3I6pzDqQmaqxNibLonVKdh_QiHOzncOqCNWkohtO6Bb7LlOwx_mgiPmNc81AD6uN8p_wX9BXTxJrDLVT3nOpV3PMHe9jM45-RkOyaQcyYQstOPIEbtztIU92ZZg7UDzFowe6W89Yf2WfbIUaCHt8A",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "kid",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-016",
+      "name": "alg none",
+      "token": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "alg",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-017",
+      "name": "HS256 keyed with the IdP's public key",
+      "token": "eyJhbGciOiJIUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.wgV-0AGdzNV7MjGkjJgsoRUTV9lGfr9P1zYCBMK-A-E",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "alg",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-018",
+      "name": "known kid, signature by another key",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.FSbGIvR4Nbz7Tz82nevnxLSZJRiNZgkoU91iTypPYzPOmt6BIQwhJg6ftaxPyFFIq6WeCOBVPVoFgDBcLcMJMQ9h-AjifaiX5FN5H28y9EltNEFhxyuVfIaotdm_0JfZaJd6etac_5o64DeEpgXPm0nX3WCOKSXGL36I-eHnqd0RcIHnojmr5qIvYDGZJ3fJNVG2fhYV2rn6nJypnXvD7YAf1A9SmKR0bIiiJwnBMmxulKLvliq_D0buwVpl1tHC3TbU1pB5wbgGB6Yg3gfJBRgbz6idaZue5u24WqqQ8cVsw_MiqgmEf3_K6P9m2UL0LSwCPYqxXlpYGySOeQazqQ",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "signature",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-019",
+      "name": "Casdoor ID token (repro r1-09): no typ, tokenType access-token, same JWT as its access token",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwidG9rZW5UeXBlIjoiYWNjZXNzLXRva2VuIiwiYXpwIjoic3BhLXBjLWNsaWVudCIsImp0aSI6ImFkbWluL2I1NGMzY2U5LTE2YmItNGIwZi1hMzA5LWFmOTRlNzM1Njg5OSIsIm93bmVyIjoicjEiLCJpZCI6ImlkcC11c2VyLTdmM2EifQ.fs1DXdFi6kl4lvYpY9Z5jq2_QsErIvnxxjxbqmKq4nXBasrje0mCGajbIWAG1TvC7FB1nV5Hs073j0pX-1x9JEREsJsS_ThWxcPNFI9OsyU1kyMAL84l5fbrfooevFQaMbI9wHrFf1yzn3VJBhN3arPO6NdVKK7Ipbd2JPnTBY0tegekAeXEoNAQSg2OQSfnziZQJ8Dto1C_zJtwFMxwK_nxyj-qosO_G1GsZRGU06eFb8CX0XTdOfFWze23iNWKyGjBfO3j4QkYMXTkk0dU1ezkR_QitMMSOZRN37TVqkaeBKbcC_q66AsAFofd1CfYsWIuIzNHBqfIBiMyD2vJTw",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-020",
+      "name": "Casdoor refresh token as Casdoor issues it (tokenType refresh-token, no kid)",
+      "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwODYzODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwidG9rZW5UeXBlIjoicmVmcmVzaC10b2tlbiIsImF6cCI6InNwYS1wYy1jbGllbnQifQ.JDRWaVxj3yExrr_RMxGJGWptlPV_A6O98WI5EbBBv8A3ILFyjtZEQ0tyqdG507mijrCWgp1qY9Ey9e3ogQw6fDkV-aFwUtHdWk7tX6FuI_mjOr3oSSjOTuDoCbTz8IqwNHlZHqOUmPjiJ9PN8PF_ZJCjPlVY5URqdkDJzEWIb6r5YZPuIiD4DAkSVUOG6Nqyx5AyXd1YLuHBRIn6cSsAfaDAp6MgWGjwSzWAvPKe2HJQXYvcMolZLdxzysyXJvEPZe09oX-FIQ5zsFnEYEBnQvToMAqWvwbZ1u5U8epzIs1NIN2UXsT9GoFuhU4piHzLE5TsRtUy_uobEAnMsywKrw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "kid",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-021",
+      "name": "Casdoor refresh token with a kid: refused by its token type, not by luck",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwODYzODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwidG9rZW5UeXBlIjoicmVmcmVzaC10b2tlbiIsImF6cCI6InNwYS1wYy1jbGllbnQifQ.FH8pl8Qu97EKH27lVApOw3H6wGLG8Y2jVGs02qktIHYinMPxhsyKE85OVW9ZHd2YgaAmLuqZBt8gwyv-6FltXQKXXKp-rDmq3dZQ84JMFRkXTxPs71JKoMt_dikxJ0S8KbziMaAKG2mYvetCESTIS6Kf6TwjirotE6bx5iTj4R-6q9Hqh9c_OAAQpEYh2FPIU06q5m43GjcVQeHJ2gP-MBwMxcgfRMORZbLEs8ZS170drTxIgr4xrkXI0cawkwi9Ou08FLXxahUG__oddqEU__NtPSGDeE8bjSA51eMsWoXxshCbf-jV94PFhhCYE7Qd5OK43lYdIOlhRfbSiIUebg",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "token_type",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-022",
+      "name": "Keycloak ID token (typ ID)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwidHlwIjoiSUQiLCJhenAiOiJzcGEtcGMtY2xpZW50In0.SyqBqrF0B5r2g_0Au4Az0BhTR-3h2Pgt6ltia9tYYfbqF2Z5rjxaSd2KHIJoZDBOvSgwqm9wvDC1xSRRZvP1c_HtEy_SD4pYCSiqZXuGlEPojEfEHbtrE8cgCkr_KZHeYNC8Kp6nmixS6VQQZLXuEaty9BHIAOHWLDQ4oHkZJY_ttH5GN65vMII6wjtj0hERdUjfZWu6iLpl6DYrQ1H-yTpCH_fvG-V8AEUarHt6X4Nvr-kq0NqlJZODN6pj2IWL2neRwYi5M_uTzJqzFSqyLRf3tlS_4qIKfp4EjQepOq37tv_qduAamB-MOacJe3C5mltlgp0zyWyTy1j84_J6KA",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client"
+      }
+    },
+    {
+      "id": "ST-023",
+      "name": "Keycloak refresh token (typ Refresh)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwidHlwIjoiUmVmcmVzaCIsImF6cCI6InNwYS1wYy1jbGllbnQifQ.rh5SpmpJMIm2Iy3y50-HxXWLAT-uU0XE8gHDNj1yH8wftpd2lRYecPf9Lj4GAf82FdcWYNVNKrWlNsMkI6DAGoZwVmrRhKkJHKzYM8U3RxzdFOEWMrGNEdolxHJ9h88c6hPa78Jg0Mvu7ErQ3YGZfWaYfpL9UzOsbd8MUqmrblLTYjK0zwd2X4CsSQbhtW6DOztx2vgNAcirqY1Zl7K7rFXn_uOlpd1EYlrCiaiRiIOC8Xu9kwhkaKjCVlEBuJEWF9iwrDGa-zoj8zG4j1xQWBuGboaDFSHfb_iXIhQb8sIlyBpd_QSBWgtgCQiHnTAt78klFtliGkRC_lWBwLoIwQ",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "token_type",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-024",
+      "name": "Keycloak access token (typ Bearer)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic3BhLXBjLWNsaWVudCJ9.XsQbk_v1kJjZUtdTqs4XtIuogPVfxhiWNS_54OkONXCHROcdBPt83PhdlDOD5WzW7IVqUtLpaEjEIbadMSng22FbDLd41C7Bvbh3ORuhs7tn6Tnqwlo2P08t0MaywGH8IdaOkzkq5e3TayZvXkaq-VKLmunfo7wSTv_HGr4lUVzPZNjyHgcw_qhbyi8uaoeY7TqOz0A9XPC9UkOrgqV4BHPi4FmLhLm79oSURpGOYf2qpyRcoXJQalnLIyV_t1PE3Md3k9011s43Gfh0WgoysTRC1eGq8IKqp6a6MFlbKvV1JXsDnDA3tPthkXe3waMHsJj3rP8gqXKNMPurZZWpnw",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "token_type",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-025",
+      "name": "a platform access token presented as an ID token",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiJ9.d81zkw_Ngv1IV_X--Endi6s1ibqSSNUie4FWCL4Z0JBIFZVyEfkjw-7WzbFUg7q_bmp8pSPFTjk1Tf1xHel_761BTC9updsvcUPK1Ju3b7EHwob3GdlrL990EZyFfsoSYPRJB4THrnqh_-_2EJDvTtiVTaE5wBMj9TS8RHbKJ0rbt6d8fWI-ceeXzwnGN-BDrBnbNiRubcs3zXOpMvpJviImuecOnZwETjY0GC3z-vAqrNX1IeFnabCTvTH7dLqTm78U6r-0HC53N1ZYgOnwhYUJGWHZMK3c-KA3t_K3r4UurI-OIYVdqjv3erbTUUcTp-3ceaJx9Nxy5e6uLL5PuA",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "SUBJECT_TOKEN_INVALID",
+        "domain": "infra/iam",
+        "rule": "kid",
+        "oauth_error": "invalid_grant"
+      }
+    },
+    {
+      "id": "ST-026",
+      "name": "email_verified false is still a valid ID token (it only blocks e-mail auto-linking)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImlkcC1ycy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJBbGljZSJ9.c5l03R2_qTdpTT_AD-IZKyEvAaprCx7sFCanPIeIqk2_CaWXINpCrMJxDUTqmlhik9H9t6k4tSAXL6uZg2sPS_W2hrSzOhSiyflrLVjG0Vyl5zy0r06LRKoC-Trv1SMEVzM0IBlTuCBqmsEBlO2RfIgA8dAEN3e_7qLUza7DrOcIB6i4Tm2QrZog8gAFHzGsKV7rbcruFe8cp4h-R3cKc2qwrASlbxN2ZyIzab3tdcRMPsbMCwOj5TVJFIQQWaNhHhYqCT0mx-kx-k8Ab-qBN_ypEpdO0QjCn5m4GtH1rsO0NzkaVD9JuI1PDIaCAqNlGOju3r30wq9Y6uSd6H-cCQ",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "idp_issuer": "https://idp.example.test",
+        "idp_sub": "idp-user-7f3a",
+        "client_id": "spa-pc-client",
+        "email_verified": false
+      }
+    }
+  ]
+}

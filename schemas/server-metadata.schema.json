@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-iam/schemas/server-metadata.schema.json",
+  "title": "GET {IAM_URL}/.well-known/oauth-authorization-server",
+  "description": "The platform issuer's metadata, in the shape of RFC 8414 plus be_* members. Served by the member on the project network only (not an edge route), like the JWKS. Unlike RFC 8414 its location is relative to IAM_URL, not to the issuer: IAM_ISSUER is a stable name that survives a member switch, IAM_URL is the member's service name (TOKENS.md, 'Issuer').",
+  "type": "object",
+  "required": ["issuer", "jwks_uri", "token_endpoint", "grant_types_supported", "token_endpoint_auth_methods_supported", "be_contract", "be_member", "be_capabilities", "be_tenant_id"],
+  "properties": {
+    "issuer": { "description": "IAM_ISSUER.", "type": "string", "minLength": 1 },
+    "jwks_uri": { "description": "The value components put in IAM_JWKS_URL: {IAM_URL}/.well-known/jwks.json.", "type": "string", "format": "uri" },
+    "token_endpoint": { "description": "The edge path of the token exchange, /api/iam/token.", "type": "string" },
+    "grant_types_supported": {
+      "type": "array", "uniqueItems": true,
+      "contains": { "const": "urn:ietf:params:oauth:grant-type:token-exchange" },
+      "items": { "enum": ["urn:ietf:params:oauth:grant-type:token-exchange", "refresh_token", "client_credentials"] }
+    },
+    "token_endpoint_auth_methods_supported": {
+      "type": "array", "uniqueItems": true, "contains": { "const": "none" },
+      "items": { "enum": ["none", "private_key_jwt"] }
+    },
+    "id_token_signing_alg_values_supported": { "type": "array", "items": { "enum": ["RS256", "ES256", "EdDSA"] } },
+    "be_contract": { "type": "string", "pattern": "^iam/1\\.(0|[1-9][0-9]*)$" },
+    "be_member": {
+      "type": "object", "required": ["id", "version"],
+      "properties": { "id": { "type": "string" }, "version": { "type": "string" } }
+    },
+    "be_capabilities": {
+      "type": "array", "uniqueItems": true, "contains": { "const": "core" },
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+    },
+    "be_tenant_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,62}$" },
+    "be_access_token_ttl_seconds": { "type": "integer", "minimum": 60, "maximum": 3600 }
+  }
+}
