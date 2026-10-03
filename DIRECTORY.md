@@ -49,7 +49,7 @@ All state mode (foundations 13): each payload is the aggregate's whole state at 
 
 ## Reads (system plane)
 
-`infra.iam.v1.IamProvider` on the member's `grpc` port, reached through `IAM_URL` (never a dependency edge; the gRPC target is the URL's host and its port + 1000, be-protocol P2.10, so a member registers its `grpc` port as its HTTP port + 1000), with `be-caller`:
+`infra.iam.v1.IamProvider` on the member's `grpc` port, reached through the shared key `IAM_GRPC_URL` (`$endpoint:<member ID>:grpc` in `config/vars.yaml`, be-protocol P2.10; never a dependency edge, and the port is whatever the member declares), with `be-caller`. A caller declares `IAM_GRPC_URL` optional: when the member does not run the key is absent and the caller shows a `sub` without its name until it can read it:
 
 | rpc | Use | Limit |
 |---|---|---|
@@ -63,7 +63,7 @@ There is no "get user by IdP subject": the IdP subject never leaves the member.
 
 For a customer whose IdP (Entra ID, Okta, Authentik, DingTalk unified identity) provisions users by push.
 
-- Endpoints under `/scim/v2/`: `Users`, `Groups` (with `directory_departments`), `ServiceProviderConfig`, `Schemas`, `ResourceTypes` (RFC 7643, RFC 7644). Edge routes, authenticated by the member's SCIM bearer secret (a secret configuration key), compared in constant time; never by a platform token.
+- Endpoints under `/scim/v2/`: `Users`, `Groups` (with `directory_departments`), `ServiceProviderConfig`, `Schemas`, `ResourceTypes` (RFC 7643, RFC 7644). Edge routes, authenticated by the member's SCIM bearer secret (a secret configuration key, delivered as a `…_FILE` file and re-read when it changes, be-protocol P2.9), compared in constant time; never by a platform token.
 - A pushed user becomes a platform user with an identity link of method `scim` keyed by the SCIM `externalId` (or `id`) under the pushing IdP's issuer; when that person later signs in through OIDC, the member links the ID token's `(iss, sub)` to the same platform user by the configured SCIM-to-OIDC attribute (default: `userName` = `preferred_username`).
 - `active: false` disables; `DELETE` disables (erasure is an administrator action, not a SCIM side effect).
 
@@ -76,7 +76,7 @@ The export carries everything a new member needs to keep every `sub`.
 | 1 | Export from the old member: `GET /api/admin/iam/export` (key `infra.iam.admin`), format `iam-export/1` |
 | 2 | Move the people into the new IdP the way that IdP supports (Keycloak's partial import can keep each user's id; a customer IdP already has them) |
 | 3 | Import into the new member: `POST /api/admin/iam/import?dry_run=true`, then without `dry_run`. Identity links to the old IdP are kept (they no longer match logins, and allow switching back). For the new IdP, either import pre-mapped `identity_link` rows (`method: import`), or open the `username` link window (TOKENS.md) for the first login of each person |
-| 4 | `brickkit add` the new member, `brickkit remove` the old one; set `IAM_URL` and `IAM_JWKS_URL` in `config/vars.yaml` to the new member's service name. `IAM_ISSUER` and `TENANT_ID` do not change |
+| 4 | `brickkit add` the new member, `brickkit remove` the old one; point `IAM_URL` and `IAM_GRPC_URL` in `config/vars.yaml` at the new member (`$endpoint:<new member ID>` and `$endpoint:<new member ID>:grpc`, two lines). `IAM_ISSUER` and `TENANT_ID` do not change |
 | 5 | People sign in again: the old member's keys are gone from the JWKS. Run `iamconf` against the new member |
 
 **Format `iam-export/1`**: UTF-8 NDJSON, LF, no blank lines; first line `header` (`format`, `contract`, `member`, `exported_at`, `tenant_id`, `issuer`, `kinds`), last line `footer` (`counts` per kind, `sha256` of every line between them with its LF); records grouped in the order `user`, `identity_link`, `department_link`, `department`, `membership`, each sorted by its natural key, so two exports of one state differ only in `exported_at`. Same framing as `authz-export/1`.

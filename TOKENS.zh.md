@@ -53,20 +53,20 @@ claims（签发方一侧；验签方更宽松，见"验签"）：
 ## 签发方
 
 - `IAM_ISSUER` 是**这个部署的平台签发方的稳定名字**，不是某个成员的地址：换成员时它不变（DIRECTORY，"换成员"）。推荐形式 `urn:be:<TENANT_ID>:iam`。它绝不是成员的服务名，也绝不是 IdP 的 issuer。
-- `IAM_URL` 是成员按自己服务名的基地址（`config/vars.yaml`，与 `AUTHZ_URL` 相同做法）。换成员它就变。
+- `IAM_URL` 是成员按自己服务名的基地址，在 `config/vars.yaml` 里写一次，写成 `$endpoint:<成员 ID>`（与 `AUTHZ_URL` 相同做法，be-protocol P2.10）。换成员它就变。
 - **服务端元数据**在 `{IAM_URL}/.well-known/oauth-authorization-server`，形状是 RFC 8414 再加 `be_contract`、`be_member`、`be_capabilities`、`be_tenant_id`。因为 issuer 是名字不是 URL，位置相对于 `IAM_URL` 而不是 issuer；这是唯一一处刻意偏离 RFC 8414 的地方。只在项目网络。
 
 ## 签名钥匙
 
 | 规则 | |
 |---|---|
-| 位置 | `{IAM_URL}/.well-known/jwks.json`；组件从 `IAM_JWKS_URL` 读。只在项目网络，永远不是边缘路由 |
+| 位置 | `{IAM_URL}/.well-known/jwks.json`，组件从这里拉取（be-protocol P5.4）；没有单独的地址键。只在项目网络，永远不是边缘路由 |
 | 算法 | `RS256`（RSA ≥ 2048 位）、`ES256`（P-256）、`EdDSA`（Ed25519）。不用 HMAC，不用 `none` |
 | 每把钥匙 | `kid`（唯一、永不复用；**应当**是 RFC 7638 指纹）、`alg`、`use: "sig"`，只有公钥成员 |
 | 公布几把 | 1 到 3 把：当前钥匙；轮换期间的上一把；可选地提前公布下一把 |
-| 轮换 | 下一把至少提前 1 h 公布再用来签（组件最多缓存 JWKS 1 h，P5.4）；切换之后上一把至少再留 access TTL + 60 s，然后撤下 |
+| 轮换 | 下一把至少提前 1 h 公布再用来签（组件最多缓存 JWKS 1 h，P5.4）；切换之后上一把至少再留 access TTL + 60 s，然后撤下。钥匙是成员会重读的文件（be-protocol P2.9），所以不用重启：(1) 把新私钥写进 `APP_TOKEN_NEXT_SIGNING_KEY_FILE` 再 `up`；每个副本在 30 s 内公布它的公钥；(2) 至少 1 h 之后，把它写进 `APP_TOKEN_SIGNING_KEY_FILE`，清空下一把，再 `up`；成员从此用它签；(3) 成员在自己的 schema 里记下签过名的每把钥匙的公钥和停用时间，停用后继续公布 access TTL + 60 s，跨重启、跨副本都成立 |
 | 缓存 | `Cache-Control: public, max-age` ≤ 3600 |
-| 私钥 | 成员的密钥类配置（`file://` 或 `${VAR}`），不进镜像，不进日志 |
+| 私钥 | 密钥文件 `APP_TOKEN_SIGNING_KEY_FILE` 和 `APP_TOKEN_NEXT_SIGNING_KEY_FILE`（`mount: file`；在 `config/` 里用 `file://` 或 `${VAR}` 填写，Kubernetes 上也可以是 `existingSecret`，由 cert-manager 之类的工具轮换），不进镜像，不进环境变量，不进日志 |
 
 撤下一把钥匙，就结束了用它签的全部 access token；换成员时旧成员的 token 就是这样失效的（DIRECTORY）。
 

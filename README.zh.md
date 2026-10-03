@@ -8,7 +8,7 @@ IAM 槽位族的族契约，版本 **iam/1.0**：每个身份成员要实现什�
 
 - **provider 契约** `infra.iam.v1`：登录配置；token 交换（RFC 8693），含登录 profile 和预留的委托 profile；刷新与登出；access / refresh token 的形状；JWKS 与签发方元数据；平台自有的 `sub` 及其身份链接；目录事件；系统面读接口 `IamProvider`；SCIM 入站；能力枚举；错误 reason；NDJSON 导出；锁定验签规则的 token 向量。
 - **不在这里**：组件运行时怎么验 token、怎么回答 stale（be-protocol P5，claims 引用本仓库）；身份确定之后能做什么（`contract-infra-authz`）；IdP 服务本身，它是基础设施（`make up`，决策 0106）。
-- **消费方**：官方 SDK（claims，`IAM_ISSUER` / `TENANT_ID` / `IAM_JWKS_URL`，`vectors/tokens/access-token.json`）；前端（login-config、discovery、token 端点、刷新、登出、能力）；权限成员（`infra.iam.user.*` 事件用于 `stale_since` 和初始管理员，声明了能力时还有部门）；要显示人名的组件（`BatchGetUsers`、`ListUsers`、用户事件）；`tools/be-acceptance/conformance/iam/`。
+- **消费方**：官方 SDK（claims，`IAM_ISSUER` / `TENANT_ID` / `IAM_URL`，`vectors/tokens/access-token.json`）；前端（login-config、discovery、token 端点、刷新、登出、能力）；权限成员（`infra.iam.user.*` 事件用于 `stale_since` 和初始管理员，声明了能力时还有部门）；要显示人名的组件（`BatchGetUsers`、`ListUsers`、用户事件）；`tools/be-acceptance/conformance/iam/`。
 
 ## 成员
 
@@ -41,10 +41,11 @@ IAM 槽位族的族契约，版本 **iam/1.0**：每个身份成员要实现什�
 
 ## 寻址与两个面
 
-- **共享键**（`config/vars.yaml`）：`IAM_URL`（成员按自己服务名的基地址）、`IAM_JWKS_URL`（= `{IAM_URL}/.well-known/jwks.json`）、`IAM_ISSUER`（稳定的名字，推荐 `urn:be:<TENANT_ID>:iam`；不是地址，换成员不变）、`TENANT_ID`、`BOOTSTRAP_ADMIN_LOGIN`。没有组件声明对 IAM 成员的依赖，IAM 成员也不声明对权限成员的依赖：它经 `AUTHZ_URL` 访问（0104、0107）。
+- **共享键**（`config/vars.yaml`）：`IAM_URL: $endpoint:infra/iam-casdoor`（成员的 REST 基地址；JWKS 在 `{IAM_URL}/.well-known/jwks.json`，所以没有 `IAM_JWKS_URL` 这个键）、`IAM_GRPC_URL: $endpoint:infra/iam-casdoor:grpc`（它的 gRPC 地址）、`IAM_ISSUER`（稳定的名字，推荐 `urn:be:<TENANT_ID>:iam`；不是地址，换成员不变）、`TENANT_ID`、`BOOTSTRAP_ADMIN_LOGIN`（be-protocol P2.10、P2.11）。没有组件声明对 IAM 成员的依赖，IAM 成员也不声明对权限成员的依赖：它经 `AUTHZ_URL` 和 `AUTHZ_GRPC_URL` 访问（`ResolveClaims`、`CreateDelegation`），两个成员互相引用对方的地址也不会形成启动顺序的环（0104、0107）。
 - **边缘**（未注明的都是公开）：`/api/iam/login-config`、`/api/tenant/features`、`/api/iam/token`、`/api/iam/token/refresh`、`/api/iam/logout`（要登录）、`/api/admin/iam/*`（键 `infra.iam.admin`）、`/scim/v2/*`（能力 `scim_inbound`，SCIM 密钥）。
-- **只在项目网络**：`/.well-known/jwks.json`、`/.well-known/oauth-authorization-server`、成员 `grpc` 端口上的 gRPC 服务（调用方带 `be-caller`），以及 `/api/iam/webhooks/casdoor` 这类成员扩展。
-- **每个成员都有、名字统一的配置**：`APP_TOKEN_SIGNING_KEY_PEM`（密钥）、`APP_TOKEN_PREVIOUS_PUBLIC_KEY_PEM`、`APP_TOKEN_TTL_SECONDS`（600）、`REFRESH_TOKEN_TTL_SECONDS`（604800）、`IAM_AUTO_PROVISION`（true）、`IAM_LINK_BY_EMAIL`（false）、`IAM_CLIENTS`（平台客户端：`azp` → IdP client id）。连 IdP 的键各成员自定。
+- **只在项目网络**：`/.well-known/jwks.json`、`/.well-known/oauth-authorization-server`、成员 `grpc` 端口上的 gRPC 服务，声明 `protocol: grpc`（be-protocol P7.14；调用方带 `be-caller`），以及 `/api/iam/webhooks/casdoor` 这类成员扩展；成员把扩展的地址交给它的 IdP 时，用一个由指向自己的引用填写的配置键（`$endpoint:infra/iam-casdoor/api/iam/webhooks/casdoor`）。
+- **成员的清单**：和任何组件一样（be-protocol P20，“`component.yaml` 里声明什么”），另外 `events.publishes` 是 `events/iam.events.json` 的每个主题（P12.16）。
+- **每个成员都有、名字统一的配置**：`APP_TOKEN_SIGNING_KEY_FILE`（密钥文件，当前私钥）、`APP_TOKEN_NEXT_SIGNING_KEY_FILE`（密钥文件，可选，轮换期间的下一把私钥；TOKENS，“签名钥匙”）、`APP_TOKEN_TTL_SECONDS`（600）、`REFRESH_TOKEN_TTL_SECONDS`（604800）、`IAM_AUTO_PROVISION`（true）、`IAM_LINK_BY_EMAIL`（false）、`IAM_CLIENTS`（平台客户端：`azp` → IdP client id）。连 IdP 的键各成员自定。其中每个密钥，包括 SCIM bearer 密钥和扩展的共享密钥，都以文件交付：`secret: true`、`mount: file`、名字是 `…_FILE`（be-protocol P2.7、P2.12）。
 
 ## 能力
 

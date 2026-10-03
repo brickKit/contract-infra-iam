@@ -7,7 +7,7 @@
   "required": ["issuer", "jwks_uri", "token_endpoint", "grant_types_supported", "token_endpoint_auth_methods_supported", "be_contract", "be_member", "be_capabilities", "be_tenant_id"],
   "properties": {
     "issuer": { "description": "IAM_ISSUER.", "type": "string", "minLength": 1 },
-    "jwks_uri": { "description": "The value components put in IAM_JWKS_URL: {IAM_URL}/.well-known/jwks.json.", "type": "string", "format": "uri" },
+    "jwks_uri": { "description": "{IAM_URL}/.well-known/jwks.json, where components fetch the keys (be-protocol P5.4).", "type": "string", "format": "uri" },
     "token_endpoint": { "description": "The edge path of the token exchange, /api/iam/token.", "type": "string" },
     "grant_types_supported": {
       "type": "array", "uniqueItems": true,

@@ -53,20 +53,20 @@ Claims (issuer side; a verifier is more lenient, see "Verification"):
 ## Issuer
 
 - `IAM_ISSUER` is a **stable name of the deployment's platform issuer**, not a member's address: it stays the same when the member is swapped (DIRECTORY.md, "Switching members"). Recommended form `urn:be:<TENANT_ID>:iam`. It is never the member's service name and never the IdP's issuer.
-- `IAM_URL` is the member's base URL by its own service name (`config/vars.yaml`, like `AUTHZ_URL`). It changes with the member.
+- `IAM_URL` is the member's base URL by its own service name, written once in `config/vars.yaml` as `$endpoint:<member ID>` (like `AUTHZ_URL`, be-protocol P2.10). It changes with the member.
 - **Server metadata** at `{IAM_URL}/.well-known/oauth-authorization-server`, the shape of RFC 8414 plus `be_contract`, `be_member`, `be_capabilities`, `be_tenant_id`. Because the issuer is a name and not a URL, the location is relative to `IAM_URL`, not to the issuer; this is the one deliberate departure from RFC 8414. Project network only.
 
 ## Signing keys
 
 | Rule | |
 |---|---|
-| Where | `{IAM_URL}/.well-known/jwks.json`; components read it at `IAM_JWKS_URL`. Project network only, never an edge route |
+| Where | `{IAM_URL}/.well-known/jwks.json`, where components fetch it (be-protocol P5.4); there is no separate address key. Project network only, never an edge route |
 | Algorithms | `RS256` (RSA ≥ 2048 bit), `ES256` (P-256), `EdDSA` (Ed25519). No HMAC, no `none` |
 | Every key | `kid` (unique, never reused; SHOULD be the RFC 7638 thumbprint), `alg`, `use: "sig"`, public members only |
 | Keys published | 1 to 3: the current key; the previous key during a rotation; optionally the next key ahead of use |
-| Rotation | publish the next key at least 1 h before signing with it (components cache the JWKS for at most 1 h, P5.4); after switching, keep the previous key published for at least the access TTL + 60 s; then remove it |
+| Rotation | publish the next key at least 1 h before signing with it (components cache the JWKS for at most 1 h, P5.4); after switching, keep the previous key published for at least the access TTL + 60 s; then remove it. The keys are files the member re-reads (be-protocol P2.9), so no restart is needed: (1) write the new private key to `APP_TOKEN_NEXT_SIGNING_KEY_FILE` and run `up`; every replica publishes its public key within 30 s; (2) at least 1 h later, write it to `APP_TOKEN_SIGNING_KEY_FILE`, clear the next key, run `up`; the member signs with it from then on; (3) the member records the public key of every key it has signed with, and when it stopped, in its own schema, and keeps publishing it for the access TTL + 60 s after that, across restarts and replicas |
 | Caching | `Cache-Control: public, max-age` ≤ 3600 |
-| Private keys | a secret configuration key of the member (`file://` or `${VAR}`), never in the image, never logged |
+| Private keys | the secret files `APP_TOKEN_SIGNING_KEY_FILE` and `APP_TOKEN_NEXT_SIGNING_KEY_FILE` (`mount: file`; filled in `config/` with `file://` or `${VAR}`, or `existingSecret` on Kubernetes, where cert-manager or a similar tool may rotate them), never in the image, never in an environment variable, never logged |
 
 Removing a key ends every access token signed with it; that is how a member switch ends the old member's tokens (DIRECTORY.md).
 

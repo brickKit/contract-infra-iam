@@ -49,7 +49,7 @@ IAM 成员所持有的平台用户、变更怎么传给其它组件、客户的 
 
 ## 读接口（系统面）
 
-`infra.iam.v1.IamProvider`，在成员的 `grpc` 端口，经 `IAM_URL` 访问（永远不建依赖边；gRPC 目标是 URL 的主机加端口 + 1000，be-protocol P2.10，所以成员把自己的 `grpc` 端口登记为 HTTP 端口 + 1000），带 `be-caller`：
+`infra.iam.v1.IamProvider`，在成员的 `grpc` 端口，经共享键 `IAM_GRPC_URL` 访问（`config/vars.yaml` 里的 `$endpoint:<成员 ID>:grpc`，be-protocol P2.10；永远不建依赖边，端口是成员自己声明的那个），带 `be-caller`。调用方把 `IAM_GRPC_URL` 声明为可选：成员这次不跑时没有这个键，调用方在能读到之前只显示 `sub`、不显示姓名：
 
 | rpc | 用途 | 上限 |
 |---|---|---|
@@ -63,7 +63,7 @@ IAM 成员所持有的平台用户、变更怎么传给其它组件、客户的 
 
 给用推送方式开通用户的客户 IdP（Entra ID、Okta、Authentik、钉钉统一身份）。
 
-- 端点在 `/scim/v2/` 下：`Users`、`Groups`（需 `directory_departments`）、`ServiceProviderConfig`、`Schemas`、`ResourceTypes`（RFC 7643、RFC 7644）。是边缘路由，用成员的 SCIM bearer 密钥（密钥类配置）认证，常量时间比较；从不用平台 token。
+- 端点在 `/scim/v2/` 下：`Users`、`Groups`（需 `directory_departments`）、`ServiceProviderConfig`、`Schemas`、`ResourceTypes`（RFC 7643、RFC 7644）。是边缘路由，用成员的 SCIM bearer 密钥（密钥类配置，以 `…_FILE` 文件交付，文件变了就重读，be-protocol P2.9）认证，常量时间比较；从不用平台 token。
 - 推送进来的用户成为平台用户，带一条 method 为 `scim` 的身份链接，键是推送方 IdP 的 issuer 下的 SCIM `externalId`（或 `id`）；这个人之后经 OIDC 登录时，成员按配置的 SCIM 到 OIDC 属性（默认 `userName` = `preferred_username`）把 ID token 的 `(iss, sub)` 链接到同一个平台用户。
 - `active: false` 即停用；`DELETE` 也是停用（擦除是管理员操作，不是 SCIM 的副作用）。
 
@@ -76,7 +76,7 @@ IAM 成员所持有的平台用户、变更怎么传给其它组件、客户的 
 | 1 | 从旧成员导出：`GET /api/admin/iam/export`（键 `infra.iam.admin`），格式 `iam-export/1` |
 | 2 | 按新 IdP 支持的方式把人搬进去（Keycloak 的 partial import 可以保留每个用户的 id；客户的 IdP 里本来就有这些人） |
 | 3 | 导入新成员：先 `POST /api/admin/iam/import?dry_run=true`，再去掉 `dry_run`。到旧 IdP 的身份链接保留（它们不再命中登录，但允许再换回去）。对新 IdP，要么导入预先映射好的 `identity_link` 行（`method: import`），要么为每个人的第一次登录打开 `username` 链接窗口（TOKENS） |
-| 4 | `brickkit add` 新成员，`brickkit remove` 旧成员；把 `config/vars.yaml` 里的 `IAM_URL` 和 `IAM_JWKS_URL` 改成新成员的服务名。`IAM_ISSUER` 和 `TENANT_ID` 不变 |
+| 4 | `brickkit add` 新成员，`brickkit remove` 旧成员；把 `config/vars.yaml` 里的 `IAM_URL` 和 `IAM_GRPC_URL` 指向新成员（`$endpoint:<新成员 ID>` 和 `$endpoint:<新成员 ID>:grpc`，两行）。`IAM_ISSUER` 和 `TENANT_ID` 不变 |
 | 5 | 大家重新登录：旧成员的钥匙已不在 JWKS 里。对新成员跑 `iamconf` |
 
 **格式 `iam-export/1`**：UTF-8 NDJSON，LF 换行，无空行；第一行 `header`（`format`、`contract`、`member`、`exported_at`、`tenant_id`、`issuer`、`kinds`），最后一行 `footer`（每种 kind 的 `counts`、两者之间每一行连同其 LF 的 `sha256`）；记录按 `user`、`identity_link`、`department_link`、`department`、`membership` 的顺序分组，组内按自然键排序，所以同一状态的两次导出只有 `exported_at` 不同。与 `authz-export/1` 同一套框架。

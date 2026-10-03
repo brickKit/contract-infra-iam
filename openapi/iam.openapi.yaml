@@ -193,7 +193,7 @@ paths:
   /.well-known/jwks.json:
     get:
       operationId: getJwks
-      summary: The platform's signing keys; the value of IAM_JWKS_URL
+      summary: The platform's signing keys, fetched by components at {IAM_URL}/.well-known/jwks.json (be-protocol P5.4)
       x-edge: false
       x-guard: public
       responses:
@@ -365,7 +365,7 @@ components:
     scimBearer:
       type: http
       scheme: bearer
-      description: The member's SCIM secret (a secret configuration key of the member), compared in constant time.
+      description: The member's SCIM secret (a secret configuration key of the member, delivered as a _FILE file and re-read when it changes), compared in constant time.
 
   responses:
     Problem:
