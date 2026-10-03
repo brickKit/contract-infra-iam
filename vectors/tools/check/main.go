@@ -179,26 +179,26 @@ func strs(v any) ([]string, bool) {
 
 func strArray(v any) bool { _, ok := v.([]any); s, ok2 := strs(v); return ok && ok2 && s != nil }
 
-// actChain validates act recursively and reports whether an agent appears.
-func actChain(v any) (agent bool, firstSub string, ok bool) {
+// actChain validates act recursively and returns the kinds along the chain, outermost first.
+func actChain(v any) (kinds []string, firstSub string, ok bool) {
 	m, isObj := v.(map[string]any)
 	if !isObj {
-		return false, "", false
+		return nil, "", false
 	}
 	sub, _ := m["sub"].(string)
 	kind, _ := m["kind"].(string)
 	if sub == "" || !slices.Contains([]string{"user", "agent", "svc"}, kind) {
-		return false, "", false
+		return nil, "", false
 	}
-	agent = kind == "agent"
+	kinds = []string{kind}
 	if inner, has := m["act"]; has {
-		a, _, ok := actChain(inner)
+		k, _, ok := actChain(inner)
 		if !ok {
-			return false, "", false
+			return nil, "", false
 		}
-		agent = agent || a
+		kinds = append(kinds, k...)
 	}
-	return agent, sub, true
+	return kinds, sub, true
 }
 
 type accessCtx struct {
@@ -210,6 +210,7 @@ type accessCtx struct {
 	Algorithms   []string           `json:"algorithms"`
 	Capabilities map[string]bool    `json:"capabilities"`
 	StaleSince   map[string]float64 `json:"stale_since"`
+	Revoked      map[string]float64 `json:"revoked_grants"`
 	JWKS         json.RawMessage    `json:"jwks"`
 }
 
@@ -232,13 +233,15 @@ func verifyAccess(token string, c accessCtx, keys map[string]key) verdict {
 			}
 		}
 	}
-	agent, actSub := false, ""
-	if v, ok := cl["act"]; ok {
-		a, s, valid := actChain(v)
+	var kinds []string
+	actSub := ""
+	_, hasAct := cl["act"]
+	if hasAct {
+		k, s, valid := actChain(cl["act"])
 		if !valid {
 			return bad("claim_type")
 		}
-		agent, actSub = a, s
+		kinds, actSub = k, s
 	}
 	if iss, _ := cl["iss"].(string); iss == "" || iss != c.Issuer {
 		return bad("iss")
@@ -271,16 +274,25 @@ func verifyAccess(token string, c accessCtx, keys map[string]key) verdict {
 	if jti, _ := cl["jti"].(string); jti == "" {
 		return bad("jti")
 	}
-	_, hasCeil := cl["ceil"]
-	_, hasDg := cl["dg"]
-	if agent && !c.Capabilities["agents"] {
-		return verdict{reason: "UNSUPPORTED_DELEGATION", rule: "agents"}
-	}
-	if (hasCeil || hasDg) && !c.Capabilities["delegation"] {
-		return verdict{reason: "UNSUPPORTED_DELEGATION", rule: "delegation"}
-	}
+	// contract-infra-authz EVALUATION.md E2: stale, revoked grant, delegated token, act chain
 	if s, ok := c.StaleSince[sub]; ok && iat < s-c.StaleGrace {
 		return verdict{reason: "TOKEN_STALE", rule: "stale"}
+	}
+	dg, _ := cl["dg"].(string)
+	if _, revoked := c.Revoked[dg]; dg != "" && revoked {
+		return verdict{reason: "TOKEN_STALE", rule: "revoked_grant"}
+	}
+	ceil, _ := strs(cl["ceil"])
+	if (hasAct || len(ceil) > 0 || dg != "") && !c.Capabilities["delegation"] {
+		return verdict{reason: "UNSUPPORTED_DELEGATION", rule: "delegation"}
+	}
+	for _, k := range kinds {
+		if k == "agent" && !c.Capabilities["agents"] {
+			return verdict{reason: "UNSUPPORTED_DELEGATION", rule: "agents"}
+		}
+		if k == "user" && !c.Capabilities["impersonation"] {
+			return verdict{reason: "UNSUPPORTED_DELEGATION", rule: "impersonation"}
+		}
 	}
 	return verdict{valid: true, sub: sub, actSub: actSub}
 }

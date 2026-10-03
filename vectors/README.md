@@ -8,7 +8,7 @@ Language-neutral test cases for the two token checks of the IAM family. Every of
 
 | File | Cases | What is checked |
 |---|---|---|
-| `tokens/access-token.json` | 51 (`AT-…`) | a component verifying a platform access token: format, `alg` allow-list and key match, `kid`, signature, claim types, `iss`, `aud`, `typ`, `sub`, `exp`/`nbf`/`iat` with skew, `jti`, delegation against bundle capabilities, stale |
+| `tokens/access-token.json` | 56 (`AT-…`) | a component verifying a platform access token: format, `alg` allow-list and key match, `kid`, signature, claim types, `iss`, `aud`, `typ`, `sub`, `exp`/`nbf`/`iat` with skew, `jti`, delegation against bundle capabilities (`delegation`, `agents`, `impersonation`), stale and revoked grants |
 | `tokens/subject-token.json` | 27 (`ST-…`) | a member verifying the IdP ID token given as `subject_token`: the same JWS checks, IdP `iss`, trusted `aud`/`azp`, age, refresh and access markers of Casdoor and Keycloak |
 | `keys/*.private.jwk.json` | 7 | **test keys, published on purpose**; never use them anywhere else |
 | `SHA256SUMS` | — | `sha256sum -c` format over `tokens/` and `keys/`; SDKs that copy the vectors check it |
@@ -30,7 +30,7 @@ Language-neutral test cases for the two token checks of the IAM family. Every of
 ```
 
 - The effective context is `defaults` with the case's `context` applied on top, key by key (shallow).
-- Compare `valid`; when false also `status`, `reason`, `domain`; when true the identity fields given (`sub`, `act_sub`, `idp_sub`, `client_id`). `rule` names the failing check for debugging only. Most cases have exactly one fault; the precedence cases (`AT-049`, `AT-050`) fix the order TOKEN_INVALID → UNSUPPORTED_DELEGATION → TOKEN_STALE.
+- Compare `valid`; when false also `status`, `reason`, `domain`; when true the identity fields given (`sub`, `act_sub`, `idp_sub`, `client_id`). `rule` names the failing check for debugging only. Most cases have exactly one fault; the precedence cases (`AT-049`, `AT-050`, `AT-056`) fix the order TOKEN_INVALID → TOKEN_STALE → UNSUPPORTED_DELEGATION (contract-infra-authz E2).
 - No case needs the network or a clock: `now` is given, and an unknown `kid` is unknown after the one refetch.
 - The access-token JWKS holds four keys so one file covers RS256, ES256 and EdDSA plus a rotation; a real JWKS holds at most three.
 - ES256 signatures are randomised, so regenerating changes those tokens and `SHA256SUMS`. Regenerate only when cases change, in the same commit as the change.

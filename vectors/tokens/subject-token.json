@@ -55,7 +55,7 @@
     {
       "id": "ST-002",
       "name": "valid, ES256 key of the IdP",
-      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImlkcC1lYy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.9t3qip2dHs9f0EBsKhO6r08id8Rgl39kXP03tFcMJXqYfH3UpEFeZzHcd21lG2ncu8fqOgCexJhmU9HkcEtcRg",
+      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImlkcC1lYy0xIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLnRlc3QiLCJhdWQiOlsic3BhLXBjLWNsaWVudCJdLCJzdWIiOiJpZHAtdXNlci03ZjNhIiwiaWF0IjoxNzg5OTk5OTgwLCJleHAiOjE3OTAwMDM1ODAsIm5vbmNlIjoibi0xIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLnRlc3QiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkFsaWNlIn0.Ki2yayORt4nwNgmNsK_AJoArYxeXcdmnzLLTcp9NNPxcMDjWk2kgvtL0fA6Rvd7UYLreAbcEw5IsEpy6KiN6gw",
       "context": {},
       "expect": {
         "valid": true,

@@ -12,8 +12,8 @@ paths:
     post:
       operationId: casdoorWebhook
       summary: Casdoor user and group change callback
-      x-edge: false
-      x-guard: public
+      x-be-internal: true
+      x-be-permission: public
       x-member: infra/iam-casdoor
       description: |
         The body is only a hint of which user or group changed. The member

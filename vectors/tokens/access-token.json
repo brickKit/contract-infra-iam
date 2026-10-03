@@ -16,9 +16,11 @@
     ],
     "capabilities": {
       "delegation": true,
-      "agents": false
+      "agents": false,
+      "impersonation": false
     },
     "stale_since": {},
+    "revoked_grants": {},
     "jwks": {
       "keys": [
         {
@@ -71,7 +73,7 @@
     {
       "id": "AT-002",
       "name": "valid ES256",
-      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InBsYXQtZWMtMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiJ9.k1A-HzL12FaXp0ppMLXQzJIoXJxfnQ7_bwBTgpS2RcgPsXD2tBwdVJC48eNWYV0vxUkqBoGJ389KFloByn4wOQ",
+      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InBsYXQtZWMtMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiJ9.cZeHPKbex7osGsWGSp9swGkaZHS8TYN2gmxQrOZjF5UtxQgrDetV-WshBVPNBKWVPEokMUHym25uUM7QfFb9pw",
       "context": {},
       "expect": {
         "valid": true,
@@ -431,7 +433,7 @@
     {
       "id": "AT-032",
       "name": "header alg differs from the JWKS key's alg (RS256 header on the P-256 kid)",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtZWMtMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiJ9.i4UpJTuaj7D5-flxtn__5CX_P7tMd60aamBB81yTO89PIOesmQdMvKAHbQOXIecOeYl_tKL8p0aaNn4tbfF5xQ",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtZWMtMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiJ9.BuiSsIWLgBEMtUNNqjN_Ablv0TZAKXRVxLfMKAQ_Yo7oMFJUKWh8nSF-IoMsyd4qHhnCfo8qHi2TsC9R_spYxw",
       "context": {},
       "expect": {
         "valid": false,
@@ -536,9 +538,15 @@
     },
     {
       "id": "AT-040",
-      "name": "impersonation token (act user, ceil, dg) with delegation=true",
+      "name": "impersonation token (act user, ceil, dg) with delegation=true and impersonation=true",
       "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhMjEiLCJraW5kIjoidXNlciJ9LCJjZWlsIjpbImltcGVyc29uYXRlLnJlYWRfb25seSJdLCJkZyI6IjAxOTI2ZjNlLTRjNmItN2QwMC1hMTExLTJiM2M0ZDVlNmY3MCJ9.aZ12DY0BTRLbyo6AaUKM8_aoxN1yELxXdoXC_jn76m5hS2P81-BgG25zxfLJY1pxYaoxE10on7A5j9q0Onswuv_FAb2gPGmOzHY5Y-wtcPceZx30SXwo--DE-Zef6cpR1PFhmaKczQlHOUiLOrLReavCgEwnmW_NY9jcobAq7w7hOeZrkJDqEXSqd5vHxddxaavNQqesT5nXDfsDZJiT9EgtDnZazb_gMDz76QadE3BNHwzdAE_7rFUnM357eMzoM_p_clbcxSpKhepwRAu6bUjfN3y2uBh2tw0ln1RznGEph6d1Io2mgC3CjUyK0WKi0Q2aT02teaxPa3sBkyL3vA",
-      "context": {},
+      "context": {
+        "capabilities": {
+          "delegation": true,
+          "agents": false,
+          "impersonation": true
+        }
+      },
       "expect": {
         "valid": true,
         "sub": "01926f3e-4c6b-7a10-9c2e-3b7d5e8f1a20",
@@ -578,9 +586,15 @@
     },
     {
       "id": "AT-043",
-      "name": "agent deeper in a nested act chain when agents=false",
+      "name": "agent deeper in a nested act chain when agents=false (impersonation allowed, so the agent is what fails)",
       "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhMjEiLCJraW5kIjoidXNlciIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhOTkiLCJraW5kIjoiYWdlbnQifX0sImNlaWwiOlsicCJdLCJkZyI6IjAxOTI2ZjNlLTRjNmItN2QwMC1hMTExLTJiM2M0ZDVlNmY3MCJ9.lk2zs2dMOJrBncH_WcKjqKdj2TJdhszA7NWFYps9_sSJbE3DrINCxI3HZ70of5gxWQjbAp7u6rtkajH-mdiCSuERVCdlN8rhMZZ1tLb491fdfYcGQvmSHLsYZ04dkNmzA5p5BqHTDfIpA6vERrTdvlJsh7PWyZv97lLbTwXcbRWWx5NT4gyBzBMhmivnon9clewO1NkrPfdlrzUmh5IZCZbBtUIHpJyGZbQeA1Cj4cNj2G4Q3ABbfUGA2KT0GfpyvrHIOLXv89Xj-QX042gAnFvG3e0BBMWxUeiaQFqaNRZCcb6VfB_pAWv66zCtzpiFV15nLFehgSPzXB_WaInR7g",
-      "context": {},
+      "context": {
+        "capabilities": {
+          "delegation": true,
+          "agents": false,
+          "impersonation": true
+        }
+      },
       "expect": {
         "valid": false,
         "status": 401,
@@ -676,7 +690,7 @@
     },
     {
       "id": "AT-050",
-      "name": "stale agent token: UNSUPPORTED_DELEGATION wins over TOKEN_STALE",
+      "name": "stale agent token: TOKEN_STALE wins over UNSUPPORTED_DELEGATION (stale before delegation, E2)",
       "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhMjEiLCJraW5kIjoiYWdlbnQifX0.eMiJx_B2ppSUg-PYm44VwiWVsuqxZ-tJkLZCZUJ9CFfDRD17mYq-tOoOHoYvye_nB-8-0mrIWfH11NQD_aF6mMdARBgHzksyM7f5vERX9FFEdFoSlSif5LG5mSjDzyTBMD4LrWsQnJ6Adz8JZT8gianXedCHa2440mOWdeUOzaXHA89OdaPqASLpPiI1npciR4jemR1TfhKt6eJvkkRFrx-XeoJbjr5aNGIQhLKEspdV_SJWGdFZxYtTrV5LTg6iADIr1Ud_xybjGYWpHC_WbX_jhdKPr_zDHxl_9O_4iPOP25bFF4KsQhdgdn9c6wmt-cxJYJ6i7IIr6uHRabE-AA",
       "context": {
         "stale_since": {
@@ -686,9 +700,10 @@
       "expect": {
         "valid": false,
         "status": 401,
-        "reason": "UNSUPPORTED_DELEGATION",
+        "reason": "TOKEN_STALE",
         "domain": "be",
-        "rule": "agents"
+        "rule": "stale",
+        "www_authenticate": "Bearer error=\"token_stale\""
       }
     },
     {
@@ -702,6 +717,90 @@
         "reason": "TOKEN_INVALID",
         "domain": "be",
         "rule": "exp"
+      }
+    },
+    {
+      "id": "AT-052",
+      "name": "impersonation token (act user) when impersonation=false",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhMjEiLCJraW5kIjoidXNlciJ9LCJjZWlsIjpbImltcGVyc29uYXRlLnJlYWRfb25seSJdLCJkZyI6IjAxOTI2ZjNlLTRjNmItN2QwMC1hMTExLTJiM2M0ZDVlNmY3MCJ9.aZ12DY0BTRLbyo6AaUKM8_aoxN1yELxXdoXC_jn76m5hS2P81-BgG25zxfLJY1pxYaoxE10on7A5j9q0Onswuv_FAb2gPGmOzHY5Y-wtcPceZx30SXwo--DE-Zef6cpR1PFhmaKczQlHOUiLOrLReavCgEwnmW_NY9jcobAq7w7hOeZrkJDqEXSqd5vHxddxaavNQqesT5nXDfsDZJiT9EgtDnZazb_gMDz76QadE3BNHwzdAE_7rFUnM357eMzoM_p_clbcxSpKhepwRAu6bUjfN3y2uBh2tw0ln1RznGEph6d1Io2mgC3CjUyK0WKi0Q2aT02teaxPa3sBkyL3vA",
+      "context": {},
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "UNSUPPORTED_DELEGATION",
+        "domain": "be",
+        "rule": "impersonation"
+      }
+    },
+    {
+      "id": "AT-053",
+      "name": "a delegated token whose grant was revoked (dg in revoked_grants)",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhMjEiLCJraW5kIjoidXNlciJ9LCJjZWlsIjpbImltcGVyc29uYXRlLnJlYWRfb25seSJdLCJkZyI6IjAxOTI2ZjNlLTRjNmItN2QwMC1hMTExLTJiM2M0ZDVlNmY3MCJ9.aZ12DY0BTRLbyo6AaUKM8_aoxN1yELxXdoXC_jn76m5hS2P81-BgG25zxfLJY1pxYaoxE10on7A5j9q0Onswuv_FAb2gPGmOzHY5Y-wtcPceZx30SXwo--DE-Zef6cpR1PFhmaKczQlHOUiLOrLReavCgEwnmW_NY9jcobAq7w7hOeZrkJDqEXSqd5vHxddxaavNQqesT5nXDfsDZJiT9EgtDnZazb_gMDz76QadE3BNHwzdAE_7rFUnM357eMzoM_p_clbcxSpKhepwRAu6bUjfN3y2uBh2tw0ln1RznGEph6d1Io2mgC3CjUyK0WKi0Q2aT02teaxPa3sBkyL3vA",
+      "context": {
+        "capabilities": {
+          "delegation": true,
+          "agents": false,
+          "impersonation": true
+        },
+        "revoked_grants": {
+          "01926f3e-4c6b-7d00-a111-2b3c4d5e6f70": 1789999990
+        }
+      },
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "TOKEN_STALE",
+        "domain": "be",
+        "rule": "revoked_grant",
+        "www_authenticate": "Bearer error=\"token_stale\""
+      }
+    },
+    {
+      "id": "AT-054",
+      "name": "act of kind svc with delegation=true needs nothing more",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiJzdmM6ZWRpIiwia2luZCI6InN2YyJ9fQ.MA2TKEJh8MuCXDKrUEEA-w5sDXBRYauX6re5Wxy0vopzuRDXWGsvFa4K89Z6y9rvMOeo2_UnK1CQ3jYSvtRUgjmPqU9copW9efrc5cBj69y52aUXiIAxLCrLxNB3-ejLmaHdL4u7gVfpRxPAUL80E_MzrCYFxyf95jAFJReDOCNyuBwiKLJKemhQ2Cr7EmPm-fL5zJPKzDOsKqQCdPQRtcv3cSyQOSphEOeErs9iNhw3ytoIEm13QMZsTkABhfFBOwVzxXcsh0FtQlVCMv7IGcc90hD5bC5-njLk2EkNXfYvRp8L94ccBceXAVS66nWv1M9FFDl2dYYnPtYfwCkshg",
+      "context": {},
+      "expect": {
+        "valid": true,
+        "sub": "01926f3e-4c6b-7a10-9c2e-3b7d5e8f1a20",
+        "act_sub": "svc:edi"
+      }
+    },
+    {
+      "id": "AT-055",
+      "name": "any act needs delegation, even without ceil or dg",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiJzdmM6ZWRpIiwia2luZCI6InN2YyJ9fQ.MA2TKEJh8MuCXDKrUEEA-w5sDXBRYauX6re5Wxy0vopzuRDXWGsvFa4K89Z6y9rvMOeo2_UnK1CQ3jYSvtRUgjmPqU9copW9efrc5cBj69y52aUXiIAxLCrLxNB3-ejLmaHdL4u7gVfpRxPAUL80E_MzrCYFxyf95jAFJReDOCNyuBwiKLJKemhQ2Cr7EmPm-fL5zJPKzDOsKqQCdPQRtcv3cSyQOSphEOeErs9iNhw3ytoIEm13QMZsTkABhfFBOwVzxXcsh0FtQlVCMv7IGcc90hD5bC5-njLk2EkNXfYvRp8L94ccBceXAVS66nWv1M9FFDl2dYYnPtYfwCkshg",
+      "context": {
+        "capabilities": {
+          "delegation": false,
+          "agents": false,
+          "impersonation": false
+        }
+      },
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "UNSUPPORTED_DELEGATION",
+        "domain": "be",
+        "rule": "delegation"
+      }
+    },
+    {
+      "id": "AT-056",
+      "name": "a revoked grant on an agent token: TOKEN_STALE before the agents check",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InBsYXQtcnMtMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ1cm46YmU6dC10ZXN0OmlhbSIsImF1ZCI6WyJ0LXRlc3QiXSwic3ViIjoiMDE5MjZmM2UtNGM2Yi03YTEwLTljMmUtM2I3ZDVlOGYxYTIwIiwidHlwIjoiYWNjZXNzIiwiaWF0IjoxNzg5OTk5OTcwLCJuYmYiOjE3ODk5OTk5NzAsImV4cCI6MTc5MDAwMDU3MCwianRpIjoiMDE5MjZmM2UtNGM2Yi03YzAwLThkMTEtMGExYjJjM2Q0ZTVmIiwidGVuYW50X2lkIjoidC10ZXN0Iiwicm9sZXMiOlsic2FsZXMucmVwIl0sImRlcHRfcGF0aCI6Ii8wMTkyNmYzZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEvIiwiYXpwIjoicGMiLCJsb2NhbGUiOiJ6aC1DTiIsImFjdCI6eyJzdWIiOiIwMTkyNmYzZS00YzZiLTdhMTAtOWMyZS0zYjdkNWU4ZjFhMjEiLCJraW5kIjoiYWdlbnQifSwiY2VpbCI6WyJhZ2VudC5zYWxlc19hc3Npc3RhbnQiXSwiZGciOiIwMTkyNmYzZS00YzZiLTdkMDAtYTExMS0yYjNjNGQ1ZTZmNzAifQ.WAAkPbpxlg6j-TE8UOIf8duyuM1tB7KXyiDAmBlhoiYU5nIY9anajBlX0gI66-C4fvvo7JSVudDEo65Xu-LD0Xr1ywXj7oOo5bbwi4vHfEBG137cjkU-xIwHmFs-TDF46cWkj4BrW7sl11O-4Iki5KASE7g74wBvNeaBg6-pVeeVnormN7LLMTkHDPe7FSUOCnBA9Gjo42lHFHtxcfbZqdbmZfh06K7km6-uEVqx0qJQWYnl5neghMb-uZXw0wn1oW6yPYp5zh7EpE9umjb9mCKkDBCc2dSOd2miPNw9WqOdfsBr1rdKUkKqiR1PZroBr87kwz9cwAHmNLUyI6OkxQ",
+      "context": {
+        "revoked_grants": {
+          "01926f3e-4c6b-7d00-a111-2b3c4d5e6f70": 1789999990
+        }
+      },
+      "expect": {
+        "valid": false,
+        "status": 401,
+        "reason": "TOKEN_STALE",
+        "domain": "be",
+        "rule": "revoked_grant",
+        "www_authenticate": "Bearer error=\"token_stale\""
       }
     }
   ]

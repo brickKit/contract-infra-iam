@@ -72,7 +72,7 @@ claims（签发方一侧；验签方更宽松，见"验签"）：
 
 ## 验签
 
-每个组件、任何语言，怎么验 access token。对 SDK 是规范性的，由 `vectors/tokens/access-token.json`（51 条）锁定。按顺序检查，第一处失败决定回答。
+每个组件、任何语言，怎么验 access token。对 SDK 是规范性的，由 `vectors/tokens/access-token.json`（56 条）锁定。按顺序检查，第一处失败决定回答。
 
 | # | 检查 | 失败 |
 |---|---|---|
@@ -88,9 +88,12 @@ claims（签发方一侧；验签方更宽松，见"验签"）：
 | 10 | 有 `nbf` 时它是数字且 `nbf ≤ now + 60` | 401 `TOKEN_INVALID` |
 | 11 | `iat` 是数字且 `iat ≤ now + 60` | 401 `TOKEN_INVALID` |
 | 12 | `jti` 是非空字符串 | 401 `TOKEN_INVALID` |
-| 13 | bundle 的 `agents` 为 false 时，`act` 链上任何一环是 `agent`；`delegation` 为 false 时带 `ceil` 或 `dg` | 401 `UNSUPPORTED_DELEGATION` |
-| 14 | 有 `stale_since[sub]` 且 `iat < stale_since[sub] − 5` | 401 `TOKEN_STALE`，`WWW-Authenticate: Bearer error="token_stale"` |
+| 13 | 有 `stale_since[sub]` 且 `iat < stale_since[sub] − 5` | 401 `TOKEN_STALE`，`WWW-Authenticate: Bearer error="token_stale"` |
+| 14 | `dg` 非空，且是 bundle 里 `revoked_grants` 的一个键 | 401 `TOKEN_STALE`，`WWW-Authenticate: Bearer error="token_stale"` |
+| 15 | token 是代理 token（带 `act`、非空 `ceil` 或非空 `dg`），而 bundle 的 `delegation` 为 false | 401 `UNSUPPORTED_DELEGATION` |
+| 16 | 沿 `act` 链由外到内：kind 为 `agent` 而 `agents` 为 false；kind 为 `user`（扮演）而 `impersonation` 为 false；kind 为 `svc` 不再需要别的 | 401 `UNSUPPORTED_DELEGATION` |
 
+- 第 13–16 项就是 contract-infra-authz `EVALUATION.md` 的 E2，顺序相同：过期的代理 token 答 `TOKEN_STALE`，前端先刷新再说别的（be-protocol P5.5、P5.6、P6.2）。
 - 不认识的 claim 忽略。`org_id` 读但不用。
 - 所有失败的 domain 都是 `be`。具体哪一项失败只进日志，不进响应。
 - **只靠 JWT 库不够**：没有库检查 `typ` 和 claim 类型；有的库接受含非字符串成员的 `aud` 数组，或者从不检查未来的 `iat`（向量 README，"缺口"）。SDK 自己补上这些检查。

@@ -92,7 +92,7 @@ IAM 槽位族的族契约，版本 **iam/1.0**：每个身份成员要实现什�
 
 ## token 向量
 
-78 条用例（access token 51 条、subject token 27 条），ID 稳定、永不复用。由 `vectors/tools/gen.mjs` 写出（Node `node:crypto`，结论按 TOKENS 手写），由 `vectors/tools/check` 交叉校验（Go 标准库，不用任何 JWT 库，与生成器不共享代码）；两者都先在篡改过的向量上见过红。再用 `jose` 6 跑一遍，发现了 JWT 库的两处缺口，向量现在都能抓到（[vectors/README.zh.md](vectors/README.zh.md)）。
+83 条用例（access token 56 条、subject token 27 条），ID 稳定、永不复用。由 `vectors/tools/gen.mjs` 写出（Node `node:crypto`，结论按 TOKENS 手写），由 `vectors/tools/check` 交叉校验（Go 标准库，不用任何 JWT 库，与生成器不共享代码）；两者都先在篡改过的向量上见过红。再用 `jose` 6 跑一遍，发现了 JWT 库的两处缺口，向量现在都能抓到（[vectors/README.zh.md](vectors/README.zh.md)）。
 
 ## 实测依据
 

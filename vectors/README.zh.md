@@ -8,7 +8,7 @@ IAM 族两项 token 检查的语言中立用例。每个官方 SDK 在单元测�
 
 | 文件 | 用例 | 检查什么 |
 |---|---|---|
-| `tokens/access-token.json` | 51 条（`AT-…`） | 组件验平台 access token：格式、`alg` 白名单与钥匙一致、`kid`、签名、claim 类型、`iss`、`aud`、`typ`、`sub`、带容差的 `exp`/`nbf`/`iat`、`jti`、对照 bundle 能力的委托、stale |
+| `tokens/access-token.json` | 56 条（`AT-…`） | 组件验平台 access token：格式、`alg` 白名单与钥匙一致、`kid`、签名、claim 类型、`iss`、`aud`、`typ`、`sub`、带容差的 `exp`/`nbf`/`iat`、`jti`、对照 bundle 能力（`delegation`、`agents`、`impersonation`）的委托、stale 与已撤销的授权 |
 | `tokens/subject-token.json` | 27 条（`ST-…`） | 成员验作为 `subject_token` 交上来的 IdP ID token：同样的 JWS 检查、IdP 的 `iss`、受信任的 `aud`/`azp`、年龄、Casdoor 和 Keycloak 的 refresh / access 标记 |
 | `keys/*.private.jwk.json` | 7 把 | **测试钥匙，故意公开**；不得用在任何别的地方 |
 | `SHA256SUMS` | — | `sha256sum -c` 格式，覆盖 `tokens/` 和 `keys/`；拷贝向量的 SDK 要核对它 |
@@ -30,7 +30,7 @@ IAM 族两项 token 检查的语言中立用例。每个官方 SDK 在单元测�
 ```
 
 - 实际上下文 = `defaults`，再逐键套上该用例的 `context`（浅合并）。
-- 比较 `valid`；为 false 时再比 `status`、`reason`、`domain`；为 true 时比给出的身份字段（`sub`、`act_sub`、`idp_sub`、`client_id`）。`rule` 只说明哪一项检查失败，供排错用，不比较。多数用例恰好一个缺陷；优先级用例（`AT-049`、`AT-050`）锁定顺序 TOKEN_INVALID → UNSUPPORTED_DELEGATION → TOKEN_STALE。
+- 比较 `valid`；为 false 时再比 `status`、`reason`、`domain`；为 true 时比给出的身份字段（`sub`、`act_sub`、`idp_sub`、`client_id`）。`rule` 只说明哪一项检查失败，供排错用，不比较。多数用例恰好一个缺陷；优先级用例（`AT-049`、`AT-050`、`AT-056`）锁定顺序 TOKEN_INVALID → TOKEN_STALE → UNSUPPORTED_DELEGATION（contract-infra-authz E2）。
 - 没有用例需要网络或时钟：`now` 已给定，不认识的 `kid` 在一次重新拉取后仍不认识。
 - access-token 的 JWKS 有四把钥匙，好让一个文件覆盖 RS256、ES256、EdDSA 外加一次轮换；真实的 JWKS 最多三把。
 - ES256 签名带随机数，所以重新生成会改变这些 token 和 `SHA256SUMS`。只在用例变化时重新生成，并与那次改动同一个提交。

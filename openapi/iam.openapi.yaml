@@ -9,10 +9,11 @@ info:
 
     Paths are fixed and the same for every member; they do not take the
     component prefix `/{domain}/{name}` because the frontend must not know
-    which member is installed. `x-edge: true` paths are edge routes
-    (assembly.yaml `edge_routes`); `x-edge: false` paths are reachable only on
-    the project network. `x-guard` is the route guard (be-protocol P6.2):
-    `public`, `authenticated`, or a permission key. `x-capability` marks a
+    which member is installed. Every path is an edge route (assembly.yaml
+    `edge_routes`) unless marked `x-be-internal: true`: reachable only on the
+    project network, never routed, exempt from edge coverage (be-protocol
+    P3.16). `x-be-permission` is the route guard (P3.16, P6.2): `public`,
+    `authenticated`, or a permission key. `x-capability` marks a
     path that exists only when the member declares that capability; without
     it the path answers 501 with reason CAPABILITY_UNAVAILABLE (domain be).
 
@@ -30,8 +31,7 @@ paths:
     get:
       operationId: getLoginConfig
       summary: OIDC client parameters for the frontend
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       parameters:
         - name: client
           in: query
@@ -49,8 +49,7 @@ paths:
     get:
       operationId: getTenantFeatures
       summary: What the login page needs before sign-in
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       responses:
         "200":
           description: "OK. `Cache-Control: public, max-age=60`."
@@ -62,8 +61,7 @@ paths:
     post:
       operationId: exchangeToken
       summary: Token exchange (RFC 8693), login profile; delegation and client-credentials profiles reserved
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       description: |
         Login profile (core): an IdP ID token in, a platform access token and
         refresh token out (LOGIN.md, "Token exchange"). Reserved profiles:
@@ -135,8 +133,7 @@ paths:
     post:
       operationId: refreshToken
       summary: Rotate the refresh token (RFC 6749 section 6)
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       description: |
         The refresh token authenticates itself. Rotation: the presented token
         is invalid at once and a new one is returned with the same session
@@ -167,8 +164,7 @@ paths:
     post:
       operationId: logout
       summary: End the session of a refresh token
-      x-edge: true
-      x-guard: authenticated
+      x-be-permission: authenticated
       description: |
         Revokes every refresh token of the session (sid) the presented refresh
         token belongs to, if it belongs to the caller's sub. Idempotent: an
@@ -194,8 +190,8 @@ paths:
     get:
       operationId: getJwks
       summary: The platform's signing keys, fetched by components at {IAM_URL}/.well-known/jwks.json (be-protocol P5.4)
-      x-edge: false
-      x-guard: public
+      x-be-internal: true
+      x-be-permission: public
       responses:
         "200":
           description: "OK. `Cache-Control: public, max-age=300` (at most 3600)."
@@ -207,8 +203,8 @@ paths:
     get:
       operationId: getServerMetadata
       summary: The platform issuer's metadata (RFC 8414 shape)
-      x-edge: false
-      x-guard: public
+      x-be-internal: true
+      x-be-permission: public
       responses:
         "200":
           description: OK.
@@ -220,8 +216,7 @@ paths:
     get:
       operationId: exportIdentity
       summary: Export users and identity links as iam-export/1 NDJSON
-      x-edge: true
-      x-guard: infra.iam.admin
+      x-be-permission: infra.iam.admin
       security: [{ bearer: [] }]
       parameters:
         - name: kinds
@@ -241,8 +236,7 @@ paths:
     post:
       operationId: importIdentity
       summary: Import an iam-export/1 file into this member
-      x-edge: true
-      x-guard: infra.iam.admin
+      x-be-permission: infra.iam.admin
       security: [{ bearer: [] }]
       description: |
         All or nothing, in one transaction. Refused when the header's tenant_id
@@ -291,8 +285,7 @@ paths:
     get:
       operationId: scimRead
       summary: SCIM 2.0 reads (RFC 7644 section 3.4)
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       x-capability: scim_inbound
       description: Authenticated by the member's SCIM bearer secret, not by a platform token (DIRECTORY.md, "SCIM inbound"). Groups only with directory_departments.
       security: [{ scimBearer: [] }]
@@ -303,8 +296,7 @@ paths:
     post:
       operationId: scimCreate
       summary: SCIM 2.0 create (RFC 7644 section 3.3)
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       x-capability: scim_inbound
       security: [{ scimBearer: [] }]
       responses:
@@ -324,8 +316,7 @@ paths:
         schema: { type: string }
     get:
       operationId: scimGet
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       x-capability: scim_inbound
       security: [{ scimBearer: [] }]
       responses:
@@ -333,24 +324,21 @@ paths:
         "404": { description: "SCIM error body." }
     put:
       operationId: scimReplace
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       x-capability: scim_inbound
       security: [{ scimBearer: [] }]
       responses:
         "200": { description: "Replaced." }
     patch:
       operationId: scimPatch
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       x-capability: scim_inbound
       security: [{ scimBearer: [] }]
       responses:
         "200": { description: "Patched (active=false disables the user)." }
     delete:
       operationId: scimDelete
-      x-edge: true
-      x-guard: public
+      x-be-permission: public
       x-capability: scim_inbound
       security: [{ scimBearer: [] }]
       responses:

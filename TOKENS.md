@@ -72,7 +72,7 @@ Removing a key ends every access token signed with it; that is how a member swit
 
 ## Verification
 
-How every component, in any language, verifies an access token. Normative for SDKs, locked by `vectors/tokens/access-token.json` (51 cases). Checks in this order; the first failure decides the answer.
+How every component, in any language, verifies an access token. Normative for SDKs, locked by `vectors/tokens/access-token.json` (56 cases). Checks in this order; the first failure decides the answer.
 
 | # | Check | Failure |
 |---|---|---|
@@ -88,9 +88,12 @@ How every component, in any language, verifies an access token. Normative for SD
 | 10 | `nbf`, if present, a number and `nbf ≤ now + 60` | 401 `TOKEN_INVALID` |
 | 11 | `iat` a number and `iat ≤ now + 60` | 401 `TOKEN_INVALID` |
 | 12 | `jti` a non-empty string | 401 `TOKEN_INVALID` |
-| 13 | an `act` of kind `agent` anywhere in the chain while the bundle's `agents` is false; `ceil` or `dg` while `delegation` is false | 401 `UNSUPPORTED_DELEGATION` |
-| 14 | `stale_since[sub]` exists and `iat < stale_since[sub] − 5` | 401 `TOKEN_STALE`, `WWW-Authenticate: Bearer error="token_stale"` |
+| 13 | `stale_since[sub]` exists and `iat < stale_since[sub] − 5` | 401 `TOKEN_STALE`, `WWW-Authenticate: Bearer error="token_stale"` |
+| 14 | `dg` is non-empty and a key of the bundle's `revoked_grants` | 401 `TOKEN_STALE`, `WWW-Authenticate: Bearer error="token_stale"` |
+| 15 | the token is delegated (it has `act`, a non-empty `ceil` or a non-empty `dg`) while the bundle's `delegation` is false | 401 `UNSUPPORTED_DELEGATION` |
+| 16 | along the `act` chain, outermost first: kind `agent` while `agents` is false; kind `user` (impersonation) while `impersonation` is false; kind `svc` needs nothing more | 401 `UNSUPPORTED_DELEGATION` |
 
+- Checks 13–16 are contract-infra-authz `EVALUATION.md` E2, in its order: a stale delegated token answers `TOKEN_STALE`, so the frontend refreshes before anything else (be-protocol P5.5, P5.6, P6.2).
 - Unknown claims are ignored. `org_id` is read, never used.
 - Every failure has domain `be`. The detail of which check failed goes to the log, never to the response.
 - **A JWT library is not enough**: no library checks `typ` or the claim types; some accept an `aud` array with non-string members or never check a future `iat` (vectors README, "Gaps"). The SDK adds these checks itself.

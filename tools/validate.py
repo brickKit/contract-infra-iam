@@ -193,6 +193,13 @@ def check_openapi():
             validate_openapi(spec, base_uri=base_uri)
         except Exception as e:  # noqa: BLE001
             fail(f"openapi {p.name}: {str(e).splitlines()[0]}")
+            continue
+        # be-protocol P3.16: every operation declares its guard, unless it is x-be-internal (fail closed)
+        for path, item in spec.get("paths", {}).items():
+            for method, op in item.items():
+                if isinstance(op, dict) and "operationId" in op:
+                    if not op.get("x-be-internal") and not op.get("x-be-permission"):
+                        fail(f"openapi {p.name} {method.upper()} {path}: no x-be-permission and not x-be-internal")
     print(f"openapi: {len(files)} documents checked")
 
 

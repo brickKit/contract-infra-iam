@@ -92,7 +92,7 @@ Suite `tools/be-acceptance/conformance/iam/` (`iamconf`). It brings its own test
 
 ## Token vectors
 
-78 cases (51 access token, 27 subject token), IDs stable and never reused. Written by `vectors/tools/gen.mjs` (Node `node:crypto`, verdicts by hand from TOKENS.md), cross-checked by `vectors/tools/check` (Go standard library, no JWT library, no shared code); both seen red on a corrupted vector before being trusted. A third run through `jose` 6 found two gaps of JWT libraries that the vectors now catch ([vectors/README.md](vectors/README.md)).
+83 cases (56 access token, 27 subject token), IDs stable and never reused. Written by `vectors/tools/gen.mjs` (Node `node:crypto`, verdicts by hand from TOKENS.md), cross-checked by `vectors/tools/check` (Go standard library, no JWT library, no shared code); both seen red on a corrupted vector before being trusted. A third run through `jose` 6 found two gaps of JWT libraries that the vectors now catch ([vectors/README.md](vectors/README.md)).
 
 ## Evidence
 
